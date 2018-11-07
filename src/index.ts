@@ -116,7 +116,7 @@ interface IGetDaysBalanceStatisticsRequest {
 	[index: string]: any
 }
 
-export default class GameMoney {
+export class GameMoney {
 	public request: any
 	private config: IConfig
 
