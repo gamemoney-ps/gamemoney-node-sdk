@@ -1,7 +1,8 @@
 import crypto from 'crypto'
 import fs from 'fs'
+import path from 'path'
 
-const publicCert = fs.readFileSync('certs/gm.crt').toString()
+const publicCert = fs.readFileSync(path.join(__dirname, '../certs/gm.crt')).toString()
 
 interface IBody {
 	signature: string
