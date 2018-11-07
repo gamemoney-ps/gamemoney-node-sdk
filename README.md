@@ -2,6 +2,8 @@
 
 [GameMoney](gamemoney.com) API wrapper for Node.js
 
+Full API documentation [here](https://cp.gamemoney.com/apidoc.php)
+
 ## Installation 
 ```sh
 $ npm install gamemoney
