@@ -13,8 +13,21 @@
     "gm",
     "merchant"
   ],
-  "author": "",
+  "homepage": "https://github.com/gamemoney-ps/gamemoney-node-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/gamemoney-ps/gamemoney-node-sdk/issues",
+    "email": "maxpain177@gmail.com"
+  },
+  "author": {
+    "name": "Maxim Makarov",
+    "email": "maxpain177@gmail.com",
+    "url": "http://maxpain.pro"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gamemoney-ps/gamemoney-node-sdk"
+  },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
