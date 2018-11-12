@@ -9,7 +9,7 @@
 		"sourceMap": true,
 		"outDir": "./dist",
 		"lib": [
-			"ES2018",
+			"es2018",
 			"esnext.asynciterable"
 		]
 	},
