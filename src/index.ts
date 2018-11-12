@@ -2,7 +2,7 @@ import Request, { TSignType } from './request'
 import { IRsaPrivateKey } from './utils'
 
 interface IConfig {
-	privateKey: IRsaPrivateKey
+	privateKey: IRsaPrivateKey | undefined | null
 	hmacKey: string
 	project: number
 }
@@ -130,6 +130,10 @@ export class GameMoney {
 
 	public send(url: string, body: any = {}, signType: TSignType = 'hmac') {
 		body.project = this.config.project
+
+		if (signType === 'rsa' && !this.config.privateKey) {
+			throw new Error('To make requests with signType: \'rsa\', privateKey must be specified')
+		}
 
 		return this.request.send(url, body, signType)
 	}

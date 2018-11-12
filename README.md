@@ -17,12 +17,10 @@ import fs from 'fs'
 import { GameMoney } from 'gamemoney'
 
 const gm = new GameMoney({
+	// Optional. But for make checkouts must be specified
 	privateKey: {
-		// for create a invoice create request signature
 		key: fs.readFileSync('./private.pem').toString(),
-
-		// passphrase for private key
-		passphrase: '123' 
+		passphrase: '123' // Optional
 	},
 
 	// for create a request signature

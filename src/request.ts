@@ -13,9 +13,9 @@ export default class GameMoneyRequest {
 	private static readonly uri: string = 'https://paygate.gamemoney.com'
 	private request: any
 	private hmacKey: string
-	private privateKey: IRsaPrivateKey
+	private privateKey: IRsaPrivateKey | undefined | null
 
-	constructor(hmacKey: string, privateKey: IRsaPrivateKey) {
+	constructor(hmacKey: string, privateKey?: IRsaPrivateKey) {
 		this.hmacKey = hmacKey
 		this.privateKey = privateKey
 
