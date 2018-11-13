@@ -1,6 +1,6 @@
 ![GameMoney](https://auth.gamemoney.com/assets/img/logo_gamemoney_login.png)
 
-[GameMoney](gamemoney.com) API wrapper for Node.js
+[GameMoney](https://gamemoney.com) API wrapper for Node.js
 
 Full API documentation [here](https://cp.gamemoney.com/apidoc.php)
 
