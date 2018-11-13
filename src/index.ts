@@ -195,12 +195,12 @@ export class GameMoney {
 
 	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_info)
 	public getExchangeInfo(body: IGetExchangeInfoRequest) {
-		return this.send('/exchange/status', body)
+		return this.send('/exchange/info', body)
 	}
 
 	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_status)
 	public getExchangeStatus(body: IGetExchangeStatusRequest) {
-		return this.send('/exchange/info', body)
+		return this.send('/exchange/status', body)
 	}
 
 	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#stat_balance)
