@@ -1,5 +1,5 @@
 import Request, { TSignType } from './request'
-import { IRsaPrivateKey } from './utils'
+import { IRsaPrivateKey, generateHmacSignature } from './utils'
 
 interface IConfig {
 	privateKey: IRsaPrivateKey | undefined | null
@@ -136,6 +136,10 @@ export class GameMoney {
 		}
 
 		return this.request.send(url, body, signType)
+	}
+
+	public generateHmacSignature(body: any) {
+		return generateHmacSignature(body, this.config.hmacKey)
 	}
 
 	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#invoice_insert_api)
