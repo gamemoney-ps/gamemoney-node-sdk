@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import crypto, { RsaPrivateKey } from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
@@ -6,11 +6,6 @@ const publicCert = fs.readFileSync(path.join(__dirname, '../certs/gm.crt')).toSt
 
 interface IBody {
 	signature: string
-}
-
-export interface IRsaPrivateKey {
-	key: string,
-	passphrase: string
 }
 
 export function paramsToString(body: IBody): string {
@@ -47,7 +42,7 @@ export function verifyRsaSignature(body: IBody): boolean {
 		.verify(publicCert, signature, 'base64')
 }
 
-export function generateRsaSignature(body: IBody, privateKey: IRsaPrivateKey): string {
+export function generateRsaSignature(body: IBody, privateKey: RsaPrivateKey): string {
 	const paramsString = paramsToString(body)
 
 	return crypto

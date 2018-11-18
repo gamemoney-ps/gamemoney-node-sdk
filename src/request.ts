@@ -1,9 +1,9 @@
 import request from 'request-promise-native'
+import { RsaPrivateKey } from 'crypto'
 import {
 	generateHmacSignature,
 	generateRsaSignature,
 	verifyRsaSignature,
-	IRsaPrivateKey,
 	getRandomString
 } from './utils'
 
@@ -13,9 +13,9 @@ export default class GameMoneyRequest {
 	private static readonly uri: string = 'https://paygate.gamemoney.com'
 	private request: any
 	private hmacKey: string
-	private privateKey: IRsaPrivateKey | undefined | null
+	private privateKey: RsaPrivateKey | undefined | null
 
-	constructor(hmacKey: string, privateKey?: IRsaPrivateKey) {
+	constructor(hmacKey: string, privateKey?: RsaPrivateKey) {
 		this.hmacKey = hmacKey
 		this.privateKey = privateKey
 
@@ -42,15 +42,15 @@ export default class GameMoneyRequest {
 			}
 		})
 
-		// if (!verifyRsaSignature(response)) {
-		// 	throw new Error('Response signature mismatch')
-		// }
+		if (!verifyRsaSignature(response)) {
+			throw new Error('Response signature mismatch')
+		}
 
 		if (body.rand && body.rand !== response.rand) {
 			throw new Error(`Wrong rand parameter: ${response.rand}`)
 		}
 
-		if (response.success === false || response.state === 'error') {
+		if (response.state === 'error') {
 			throw new Error(response.error)
 		}
 

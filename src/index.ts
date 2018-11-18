@@ -1,8 +1,9 @@
 import Request, { TSignType } from './request'
-import { IRsaPrivateKey, generateHmacSignature } from './utils'
+import { RsaPrivateKey } from 'crypto'
+import { generateHmacSignature } from './utils'
 
 interface IConfig {
-	privateKey: IRsaPrivateKey | undefined | null
+	privateKey: RsaPrivateKey | undefined | null
 	hmacKey: string
 	project: number
 }
