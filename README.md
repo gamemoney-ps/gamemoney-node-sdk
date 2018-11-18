@@ -29,7 +29,7 @@ const gm = new GameMoney({
 })
 ```
 
-### Create an invoice
+### Invoicing using API
 ```typescript
 const result = await gm.createInvoice({
 	wallet: '79253642685',
@@ -42,6 +42,24 @@ const result = await gm.createInvoice({
 })
 
 console.log(result)
+```
+
+### Invoicing using the Terminal
+```typescript
+const body = {
+	project: 123,
+	user: 1
+}
+
+const sign = gm.generateHmacSignature(body)
+```
+```html
+<form method="post" action="https://pay.gamemoney.com/terminal/">
+	<input type="hidden" name="project" value="123">
+	<input type="hidden" name="user" value="1">
+	<input type="hidden" name="signature" value="{{ sign }}">
+	<input type="submit" value="Pay">
+</form>
 ```
 
 ### Checkout
