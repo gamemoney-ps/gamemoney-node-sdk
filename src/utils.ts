@@ -1,4 +1,4 @@
-import crypto, { RsaPrivateKey } from 'crypto'
+import crypto, { SignPrivateKeyInput } from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
@@ -47,7 +47,7 @@ export function verifyRsaSignature(body: IBody): boolean {
 		.verify(publicCert, signature, 'base64')
 }
 
-export function generateRsaSignature(body: IBody, privateKey: RsaPrivateKey): string {
+export function generateRsaSignature(body: IBody, privateKey: SignPrivateKeyInput): string {
 	const paramsString = paramsToString(body)
 
 	return crypto

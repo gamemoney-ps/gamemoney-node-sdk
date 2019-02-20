@@ -1,5 +1,5 @@
 import request from 'request-promise-native'
-import { RsaPrivateKey } from 'crypto'
+import { SignPrivateKeyInput } from 'crypto'
 import {
 	generateHmacSignature,
 	generateRsaSignature,
@@ -13,9 +13,9 @@ export default class GameMoneyRequest {
 	private static readonly uri: string = 'https://paygate.gamemoney.com'
 	private request: any
 	private hmacKey: string
-	private privateKey: RsaPrivateKey | undefined | null
+	private privateKey: SignPrivateKeyInput | undefined | null
 
-	constructor(hmacKey: string, privateKey?: RsaPrivateKey) {
+	constructor(hmacKey: string, privateKey?: SignPrivateKeyInput) {
 		this.hmacKey = hmacKey
 		this.privateKey = privateKey
 
