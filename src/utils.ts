@@ -10,8 +10,13 @@ interface IBody {
 
 export function paramsToString(body: IBody): string {
 	let paramsString = ''
+	let keys = Object.keys(body).sort()
 
-	Object.keys(body).sort().forEach((key) => {
+	if (Array.isArray(body)) {
+		keys = keys.sort((a, b) => +a - +b)
+	}
+
+	keys.forEach((key) => {
 		let value = body[key]
 
 		if (key === 'signature') {
