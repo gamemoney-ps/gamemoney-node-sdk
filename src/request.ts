@@ -9,6 +9,14 @@ import {
 
 export type TSignType = 'hmac' | 'rsa'
 
+export interface IResponse {
+	state: 'success' | 'error'
+	time: number
+	error?: string
+	rand: string
+	signature: string
+}
+
 export default class GameMoneyRequest {
 	private static readonly uri: string = 'https://paygate.gamemoney.com'
 	private request: any
@@ -25,7 +33,7 @@ export default class GameMoneyRequest {
 		})
 	}
 
-	public async send(url: string, body: any, signType: TSignType = 'hmac') {
+	public async send(url: string, body: any, signType: TSignType = 'hmac'): Promise<IResponse> {
 		if (!body.rand) {
 			body.rand = getRandomString(20)
 		}
@@ -34,7 +42,7 @@ export default class GameMoneyRequest {
 			? generateHmacSignature(body, this.hmacKey)
 			: generateRsaSignature(body, this.privateKey)
 
-		const response = await this.request.post({
+		const response: IResponse = await this.request.post({
 			url,
 			form: {
 				...body,

@@ -1,9 +1,9 @@
-import Request, { TSignType } from './request'
+import Request, { TSignType, IResponse } from './request'
 import { SignPrivateKeyInput } from 'crypto'
 import { generateHmacSignature } from './utils'
 
 interface IConfig {
-	privateKey: SignPrivateKeyInput | undefined | null
+	privateKey?: SignPrivateKeyInput
 	hmacKey: string
 	project: number
 }
@@ -24,9 +24,43 @@ interface ICreateInvoiceRequest {
 	[index: string]: any
 }
 
+interface ICreateInvoiceResponse extends IResponse {
+	invoice: number,
+	type: 'message' | 'redirect' | 'error'
+	data: string
+}
+
 interface IGetInvoiceStatusRequest {
 	invoice: number
 	[index: string]: any
+}
+
+interface IGetInvoiceStatusResponse extends IResponse {
+	project: string
+	invoice: string
+	status: string
+	paid: number
+	amount: string
+	net_amount: string
+	recieved_amount: string
+	user: string
+	type: string
+	wallet: string
+	project_invoice: string
+	currency_project: string
+	currency_user: string
+	date_create: string
+	date_pay: string
+}
+
+interface IGetInvoiceListRequest {
+	start: string
+	finish: string
+	[index: string]: any
+}
+
+interface IGetInvoiceListResponse extends IResponse {
+	list: IGetInvoiceStatusResponse[]
 }
 
 interface ICancelCheckoutRequest {
@@ -37,6 +71,44 @@ interface ICancelCheckoutRequest {
 interface IGetCheckoutStatusRequest {
 	projectId: number | string
 	[index: string]: any
+}
+
+interface IRefund {
+	id: string
+	amount: string
+	net_amount: string
+	paid_amount: string
+	comment: string
+}
+
+interface IGetCheckoutStatusResponse extends IResponse {
+	id: string
+	project: string
+	projectId: string
+	amount: number
+	net_amount: number
+	paid_amount: number
+	status: string
+	user: string
+	wallet: string
+	description: string
+	comment: string
+	redirect_url: string
+	type: string
+	currency_project: string
+	currency_user: string
+	date_create: string
+	refunds: IRefund[]
+}
+
+interface IGetCheckoutListRequest {
+	start: string
+	finish: string
+	[index: string]: any
+}
+
+interface IGetCheckoutListResponse extends IResponse {
+	list: IGetCheckoutStatusResponse[]
 }
 
 interface ICreateCheckoutRequest {
@@ -58,9 +130,17 @@ interface IAddCardRequest {
 	[index: string]: any
 }
 
+interface IAddCardResponse extends IResponse {
+	url: string
+}
+
 interface IGetCardListRequest {
 	user: number
 	[index: string]: any
+}
+
+interface IGetCardListResponse extends IResponse {
+	pans: string[]
 }
 
 interface IDeleteCardRequest {
@@ -78,6 +158,11 @@ interface IPrepareExchangeRequest {
 	[index: string]: any
 }
 
+interface IPrepareExchangeResponse extends IResponse {
+	id: string
+	rate: string
+}
+
 interface IConvertExchangeRequest {
 	id: number
 	amount: number
@@ -91,9 +176,18 @@ interface IFastConvertExchangeRequest {
 	[index: string]: any
 }
 
+interface IFastConvertExchangeResponse extends IResponse {
+	id: string
+	rate: string
+}
+
 interface IGetExchangeInfoRequest {
 	id: number
 	[index: string]: any
+}
+
+interface IGetExchangeInfoResponse extends IResponse {
+	rate: string
 }
 
 interface IGetExchangeStatusRequest {
@@ -105,9 +199,30 @@ interface IGetExchangeStatusRequest {
 	[index: string]: any
 }
 
+interface IGetExchangeStatusResponse extends IResponse {
+	id: string
+	from: string
+	to: string
+	rate: string
+	amount_from: string
+	amount_to: string
+	status: string
+}
+
 interface IGetBalanceStatisticsRequest {
 	currency: string
 	[index: string]: any
+}
+
+interface IGetBalanceStatisticsResponse extends IResponse {
+	project: string
+	currency: string
+	project_income: string
+	project_outcome: string
+	project_balance: string
+	contract_income: string
+	contract_outcome: string
+	contract_balance: string
 }
 
 interface IGetDaysBalanceStatisticsRequest {
@@ -115,6 +230,31 @@ interface IGetDaysBalanceStatisticsRequest {
 	start: string
 	finish: string
 	[index: string]: any
+}
+
+interface IDaysBalance {
+	date: string
+	income: string
+	outcome: string
+}
+
+interface IGetDaysBalanceStatisticsResponse extends IResponse {
+	project: string
+	currency: string
+	days_balance: IDaysBalance[]
+}
+
+interface IPaySystem {
+	type: string
+	fee: string
+	fixed_fee: string
+	currency: string
+}
+
+interface IGetPayTypesStatisticsResponse extends IResponse {
+	project: string
+	invoice: IPaySystem[]
+	checkout: IPaySystem[]
 }
 
 export class GameMoney {
@@ -129,7 +269,7 @@ export class GameMoney {
 		this.request = new Request(hmacKey, privateKey)
 	}
 
-	public send(url: string, body: any = {}, signType: TSignType = 'hmac') {
+	public send(url: string, body: any = {}, signType: TSignType = 'hmac'): Promise<any> {
 		body.project = this.config.project
 
 		if (signType === 'rsa' && !this.config.privateKey) {
@@ -143,83 +283,93 @@ export class GameMoney {
 		return generateHmacSignature(body, this.config.hmacKey)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#invoice_insert_api)
-	public createInvoice(body: ICreateInvoiceRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#invoice_insert_api)
+	public createInvoice(body: ICreateInvoiceRequest): Promise<ICreateInvoiceResponse> {
 		return this.send('/invoice/', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#invoice_status)
-	public getInvoiceStatus(body: IGetInvoiceStatusRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#invoice_status)
+	public getInvoiceStatus(body: IGetInvoiceStatusRequest): Promise<IGetInvoiceStatusResponse> {
 		return this.send('/invoice/status', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#checkout_insert)
-	public createCheckout(body: ICreateCheckoutRequest) {
+	// For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#invoice_list)
+	public getInvoiceList(body: IGetInvoiceListRequest): Promise<IGetInvoiceListResponse> {
+		return this.send('/invoice/list', body)
+	}
+
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#checkout_insert)
+	public createCheckout(body: ICreateCheckoutRequest): Promise<IResponse> {
 		return this.send('/checkout/insert', body, 'rsa')
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#checkout_cancel)
-	public cancelCheckout(body: ICancelCheckoutRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#checkout_cancel)
+	public cancelCheckout(body: ICancelCheckoutRequest): Promise<IResponse> {
 		return this.send('/checkout/cancel', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#checkout_status)
-	public getCheckoutStatus(body: IGetCheckoutStatusRequest) {
-		return this.send('/checkout/status/', body)
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#checkout_status)
+	public getCheckoutStatus(body: IGetCheckoutStatusRequest): Promise<IGetCheckoutStatusResponse> {
+		return this.send('/checkout/status', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#card_add)
-	public addCard(body: IAddCardRequest) {
+	// For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#checkout_list)
+	public getCheckoutList(body: IGetCheckoutListRequest): Promise<IGetCheckoutListResponse> {
+		return this.send('/checkout/list', body)
+	}
+
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#card_add)
+	public addCard(body: IAddCardRequest): Promise<IAddCardResponse> {
 		return this.send('/card/add', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#card_list)
-	public getCardList(body: IGetCardListRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#card_list)
+	public getCardList(body: IGetCardListRequest): Promise<IGetCardListResponse> {
 		return this.send('/card/list', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#card_list)
-	public deleteCard(body: IDeleteCardRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#card_list)
+	public deleteCard(body: IDeleteCardRequest): Promise<IResponse> {
 		return this.send('/card/delete', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_prepare)
-	public prepareExchange(body: IPrepareExchangeRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#exchange_prepare)
+	public prepareExchange(body: IPrepareExchangeRequest): Promise<IPrepareExchangeResponse> {
 		return this.send('/exchange/prepare', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_convert)
-	public convertExchange(body: IConvertExchangeRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#exchange_convert)
+	public convertExchange(body: IConvertExchangeRequest): Promise<IResponse> {
 		return this.send('/exchange/convert', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_fastconvert)
-	public fastConvertExchange(body: IFastConvertExchangeRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#exchange_fastconvert)
+	public fastConvertExchange(body: IFastConvertExchangeRequest): Promise<IFastConvertExchangeResponse> {
 		return this.send('/exchange/fastconvert', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_info)
-	public getExchangeInfo(body: IGetExchangeInfoRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#exchange_info)
+	public getExchangeInfo(body: IGetExchangeInfoRequest): Promise<IGetExchangeInfoResponse> {
 		return this.send('/exchange/info', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#exchange_status)
-	public getExchangeStatus(body: IGetExchangeStatusRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#exchange_status)
+	public getExchangeStatus(body: IGetExchangeStatusRequest): Promise<IGetExchangeStatusResponse> {
 		return this.send('/exchange/status', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#stat_balance)
-	public getBalanceStatistics(body: IGetBalanceStatisticsRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#stat_balance)
+	public getBalanceStatistics(body: IGetBalanceStatisticsRequest): Promise<IGetBalanceStatisticsResponse> {
 		return this.send('/statistics/balance', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#stat_days_balance)
-	public getDaysBalanceStatistics(body: IGetDaysBalanceStatisticsRequest) {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#stat_days_balance)
+	public getDaysBalanceStatistics(body: IGetDaysBalanceStatisticsRequest): Promise<IGetDaysBalanceStatisticsResponse> {
 		return this.send('/statistics/days_balance_project', body)
 	}
 
-	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc.php#stat_paytypes)
-	public getPayTypesStatistics() {
+	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#stat_paytypes)
+	public getPayTypesStatistics(): Promise<IGetPayTypesStatisticsResponse> {
 		return this.send('/statistics/paytypes')
 	}
 }
