@@ -86,7 +86,7 @@ import { verifyRsaSignature } from 'gamemoney'
 
 const app = express()
 
-app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
 
 app.post('/gamemoney/callback/url', (req, res) => {
 	const { body } = req
