@@ -182,8 +182,11 @@ export interface IFastConvertExchangeResponse extends IResponse {
 }
 
 export interface IGetExchangeInfoRequest {
-	id: number
-	[index: string]: any
+	minAmount: number
+	maxAmount: number
+	from: string
+	to: string
+	livetime?: number
 }
 
 export interface IGetExchangeInfoResponse extends IResponse {
@@ -191,12 +194,8 @@ export interface IGetExchangeInfoResponse extends IResponse {
 }
 
 export interface IGetExchangeStatusRequest {
-	minAmount: number
-	maxAmount: number
-	from: string
-	to: string
-	livetime?: number
-	[index: string]: any
+	id?: number
+	externalId?: string
 }
 
 export interface IGetExchangeStatusResponse extends IResponse {
