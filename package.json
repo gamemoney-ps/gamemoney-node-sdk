@@ -31,18 +31,18 @@
     "url": "https://github.com/gamemoney-ps/gamemoney-node-sdk"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
+    "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^11.13.13",
-    "@types/request-promise-native": "^1.0.16",
+    "@types/node": "^13.5.0",
+    "@types/request-promise-native": "^1.0.17",
     "chai": "^4.2.0",
-    "mocha": "^6.1.4",
-    "ts-node": "^8.2.0",
-    "tslint": "^5.17.0",
-    "typescript": "^3.5.1"
+    "mocha": "^7.0.0",
+    "ts-node": "^8.6.2",
+    "tslint": "^6.0.0",
+    "typescript": "^3.7.5"
   },
   "dependencies": {
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.7"
+    "request-promise-native": "^1.0.8"
   }
 }
