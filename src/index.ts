@@ -2,13 +2,13 @@ import Request, { TSignType, IResponse } from './request'
 import { SignPrivateKeyInput } from 'crypto'
 import { generateHmacSignature } from './utils'
 
-interface IConfig {
+export interface IConfig {
 	privateKey?: SignPrivateKeyInput
 	hmacKey: string
 	project: number
 }
 
-interface ICreateInvoiceRequest {
+export interface ICreateInvoiceRequest {
 	type: string
 	user: number
 	ip: string
@@ -24,18 +24,18 @@ interface ICreateInvoiceRequest {
 	[index: string]: any
 }
 
-interface ICreateInvoiceResponse extends IResponse {
+export interface ICreateInvoiceResponse extends IResponse {
 	invoice: number,
 	type: 'message' | 'redirect' | 'error'
 	data: string
 }
 
-interface IGetInvoiceStatusRequest {
+export interface IGetInvoiceStatusRequest {
 	invoice: number
 	[index: string]: any
 }
 
-interface IGetInvoiceStatusResponse extends IResponse {
+export interface IGetInvoiceStatusResponse extends IResponse {
 	project: string
 	invoice: string
 	status: string
@@ -53,27 +53,27 @@ interface IGetInvoiceStatusResponse extends IResponse {
 	date_pay: string
 }
 
-interface IGetInvoiceListRequest {
+export interface IGetInvoiceListRequest {
 	start: string
 	finish: string
 	[index: string]: any
 }
 
-interface IGetInvoiceListResponse extends IResponse {
+export interface IGetInvoiceListResponse extends IResponse {
 	list: IGetInvoiceStatusResponse[]
 }
 
-interface ICancelCheckoutRequest {
+export interface ICancelCheckoutRequest {
 	projectId: number | string
 	[index: string]: any
 }
 
-interface IGetCheckoutStatusRequest {
+export interface IGetCheckoutStatusRequest {
 	projectId: number | string
 	[index: string]: any
 }
 
-interface IRefund {
+export interface IRefund {
 	id: string
 	amount: string
 	net_amount: string
@@ -81,7 +81,7 @@ interface IRefund {
 	comment: string
 }
 
-interface IGetCheckoutStatusResponse extends IResponse {
+export interface IGetCheckoutStatusResponse extends IResponse {
 	id: string
 	project: string
 	projectId: string
@@ -101,17 +101,17 @@ interface IGetCheckoutStatusResponse extends IResponse {
 	refunds: IRefund[]
 }
 
-interface IGetCheckoutListRequest {
+export interface IGetCheckoutListRequest {
 	start: string
 	finish: string
 	[index: string]: any
 }
 
-interface IGetCheckoutListResponse extends IResponse {
+export interface IGetCheckoutListResponse extends IResponse {
 	list: IGetCheckoutStatusResponse[]
 }
 
-interface ICreateCheckoutRequest {
+export interface ICreateCheckoutRequest {
 	projectId: number | string
 	user: number
 	ip: string
@@ -124,32 +124,32 @@ interface ICreateCheckoutRequest {
 	[index: string]: any
 }
 
-interface IAddCardRequest {
+export interface IAddCardRequest {
 	user: number
 	redirect: string
 	[index: string]: any
 }
 
-interface IAddCardResponse extends IResponse {
+export interface IAddCardResponse extends IResponse {
 	url: string
 }
 
-interface IGetCardListRequest {
+export interface IGetCardListRequest {
 	user: number
 	[index: string]: any
 }
 
-interface IGetCardListResponse extends IResponse {
+export interface IGetCardListResponse extends IResponse {
 	pans: string[]
 }
 
-interface IDeleteCardRequest {
+export interface IDeleteCardRequest {
 	user: number
 	pan: string
 	[index: string]: any
 }
 
-interface IPrepareExchangeRequest {
+export interface IPrepareExchangeRequest {
 	minAmount: number
 	maxAmount: number
 	from: string
@@ -158,30 +158,30 @@ interface IPrepareExchangeRequest {
 	[index: string]: any
 }
 
-interface IPrepareExchangeResponse extends IResponse {
+export interface IPrepareExchangeResponse extends IResponse {
 	id: string
 	rate: string
 }
 
-interface IConvertExchangeRequest {
+export interface IConvertExchangeRequest {
 	id: number
 	amount: number
 	[index: string]: any
 }
 
-interface IFastConvertExchangeRequest {
+export interface IFastConvertExchangeRequest {
 	amount: number
 	from: string
 	to: string
 	[index: string]: any
 }
 
-interface IFastConvertExchangeResponse extends IResponse {
+export interface IFastConvertExchangeResponse extends IResponse {
 	id: string
 	rate: string
 }
 
-interface IGetExchangeInfoRequest {
+export interface IGetExchangeInfoRequest {
 	minAmount: number
 	maxAmount: number
 	from: string
@@ -189,16 +189,16 @@ interface IGetExchangeInfoRequest {
 	livetime?: number
 }
 
-interface IGetExchangeInfoResponse extends IResponse {
+export interface IGetExchangeInfoResponse extends IResponse {
 	rate: string
 }
 
-interface IGetExchangeStatusRequest {
+export interface IGetExchangeStatusRequest {
 	id?: number
 	externalId?: string
 }
 
-interface IGetExchangeStatusResponse extends IResponse {
+export interface IGetExchangeStatusResponse extends IResponse {
 	id: string
 	from: string
 	to: string
@@ -208,12 +208,12 @@ interface IGetExchangeStatusResponse extends IResponse {
 	status: string
 }
 
-interface IGetBalanceStatisticsRequest {
+export interface IGetBalanceStatisticsRequest {
 	currency: string
 	[index: string]: any
 }
 
-interface IGetBalanceStatisticsResponse extends IResponse {
+export interface IGetBalanceStatisticsResponse extends IResponse {
 	project: string
 	currency: string
 	project_income: string
@@ -224,33 +224,33 @@ interface IGetBalanceStatisticsResponse extends IResponse {
 	contract_balance: string
 }
 
-interface IGetDaysBalanceStatisticsRequest {
+export interface IGetDaysBalanceStatisticsRequest {
 	currency: string
 	start: string
 	finish: string
 	[index: string]: any
 }
 
-interface IDaysBalance {
+export interface IDaysBalance {
 	date: string
 	income: string
 	outcome: string
 }
 
-interface IGetDaysBalanceStatisticsResponse extends IResponse {
+export interface IGetDaysBalanceStatisticsResponse extends IResponse {
 	project: string
 	currency: string
 	days_balance: IDaysBalance[]
 }
 
-interface IPaySystem {
+export interface IPaySystem {
 	type: string
 	fee: string
 	fixed_fee: string
 	currency: string
 }
 
-interface IGetPayTypesStatisticsResponse extends IResponse {
+export interface IGetPayTypesStatisticsResponse extends IResponse {
 	project: string
 	invoice: IPaySystem[]
 	checkout: IPaySystem[]
