@@ -30,16 +30,20 @@ export interface ICreateInvoiceResponse extends IResponse {
 	data: string
 }
 
-export interface IGetInvoiceStatusRequest {
+export interface IGetInvoiceStatusRequestWithProjectInvoiceID {
 	invoice: number
-	[index: string]: any
 }
+
+export interface IGetInvoiceStatusRequestWithGamemoneyInvoiceID {
+	project_invoice: string
+}
+
+export type IGetInvoiceStatusRequest = IGetInvoiceStatusRequestWithProjectInvoiceID | IGetInvoiceStatusRequestWithGamemoneyInvoiceID
 
 export interface IGetInvoiceStatusResponse extends IResponse {
 	project: string
 	invoice: string
 	status: string
-	paid: number
 	amount: string
 	net_amount: string
 	recieved_amount: string
@@ -51,6 +55,7 @@ export interface IGetInvoiceStatusResponse extends IResponse {
 	currency_user: string
 	date_create: string
 	date_pay: string
+	rate: string
 }
 
 export interface IGetInvoiceListRequest {
@@ -61,6 +66,7 @@ export interface IGetInvoiceListRequest {
 
 export interface IGetInvoiceListResponse extends IResponse {
 	list: IGetInvoiceStatusResponse[]
+	is_limit_exceeded: 'yes' | 'no' // lol
 }
 
 export interface ICancelCheckoutRequest {
@@ -98,6 +104,7 @@ export interface IGetCheckoutStatusResponse extends IResponse {
 	currency_project: string
 	currency_user: string
 	date_create: string
+	rate: string
 	refunds: IRefund[]
 }
 
@@ -161,6 +168,8 @@ export interface IPrepareExchangeRequest {
 export interface IPrepareExchangeResponse extends IResponse {
 	id: string
 	rate: string
+	exchanged_amount_from: string
+	exchanged_amount_to: string
 }
 
 export interface IConvertExchangeRequest {
@@ -191,6 +200,8 @@ export interface IGetExchangeInfoRequest {
 
 export interface IGetExchangeInfoResponse extends IResponse {
 	rate: string
+	exchanged_amount_from: string
+	exchanged_amount_to: string
 }
 
 export interface IGetExchangeStatusRequest {
