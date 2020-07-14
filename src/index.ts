@@ -267,6 +267,10 @@ export interface IGetPayTypesStatisticsResponse extends IResponse {
 	checkout: IPaySystem[]
 }
 
+export interface ICreateTerminalResponse extends IResponse {
+	url: string
+}
+
 export class GameMoney {
 	public request: any
 	private config: IConfig
@@ -381,6 +385,11 @@ export class GameMoney {
 	// For more details and usage information see [docs](http://cp.gamemoney.com/apidoc#stat_paytypes)
 	public getPayTypesStatistics(): Promise<IGetPayTypesStatisticsResponse> {
 		return this.send('/statistics/paytypes')
+	}
+
+	// For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#invoice_api_terminal)
+	public createTerminal(body: ICreateInvoiceRequest): Promise<ICreateTerminalResponse> {
+		return this.send('/terminal/create', body)
 	}
 }
 
