@@ -196,6 +196,7 @@ export interface IGetExchangeInfoRequest {
 	from: string
 	to: string
 	livetime?: number
+	rateType?: 'exchange' | 'invoice' | 'checkout'
 }
 
 export interface IGetExchangeInfoResponse extends IResponse {
