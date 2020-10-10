@@ -271,6 +271,20 @@ export interface ICreateTerminalResponse extends IResponse {
 	url: string
 }
 
+export interface ICreateTerminalRequest {
+  user: number
+  ip: string
+  amount?: number
+  comment?: string
+  success_url?: string
+  fail_url?: string
+  project_invoice?: number | string
+  currency?: string
+  use_user_select_currency?: 'yes' | 'no'
+  language?: string
+  [index: string]: any
+}
+
 export class GameMoney {
 	public request: any
 	private config: IConfig
@@ -388,7 +402,7 @@ export class GameMoney {
 	}
 
 	// For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#invoice_api_terminal)
-	public createTerminal(body: ICreateInvoiceRequest): Promise<ICreateTerminalResponse> {
+	public createTerminal(body: ICreateTerminalRequest): Promise<ICreateTerminalResponse> {
 		return this.send('/terminal/create', body)
 	}
 }
