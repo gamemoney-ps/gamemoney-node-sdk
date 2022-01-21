@@ -1,6 +1,6 @@
 {
   "name": "gamemoney",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "GameMoney API wrapper for Node.js",
   "keywords": [
     "gamemoney",
@@ -33,7 +33,7 @@
   "scripts": {
     "prebuild": "rm -rf .build",
     "build": "tsc",
-    "postbuild": "cp -r package*.json .npmignore ./src/certs .build",
+    "postbuild": "cp -r package*.json .npmignore ./src/certs README.md .build",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "lint": "xo",
     "lint:fix": "xo --fix"
