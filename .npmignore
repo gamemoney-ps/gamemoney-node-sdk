@@ -1,1 +1,4 @@
-src/
+*.test.js
+*.test.d.ts
+tsconfig.tsbuildinfo
+examples
