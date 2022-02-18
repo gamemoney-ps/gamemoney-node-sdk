@@ -3,14 +3,13 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 
 const publicCert = fs
-	.readFileSync(new URL('./certs/gm.crt', import.meta.url))
+	.readFileSync(new URL('certs/gm.crt', import.meta.url))
 	.toString()
 
 export type RsaKey = Parameters<crypto.Sign['sign']>[0]
 export type HmacKey = Parameters<typeof crypto.createHmac>[1]
 
 type JsonPrimitive = number | number[] | string | string[] | undefined | null
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 type Json = { [key: string]: Json | JsonPrimitive }
 
 interface Body extends Json {
