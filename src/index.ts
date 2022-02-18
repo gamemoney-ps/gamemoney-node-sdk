@@ -392,6 +392,7 @@ export interface CheckoutNotification {
 	currency_user: string
 	time: string
 	signature: string
+	refunds?: Refund[]
 }
 
 export interface TransferNotification {
