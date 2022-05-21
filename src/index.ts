@@ -407,14 +407,20 @@ export interface TransferNotification {
 }
 
 type Payload = Record<string, unknown>
+
+export class GameMoneyError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'GameMoneyError'
+	}
+}
 export default class GameMoney {
-	private readonly config: Config
 	private readonly got = got.extend({
 		prefixUrl: 'https://paygate.gamemoney.com',
 		responseType: 'json',
 	})
 
-	constructor(config: Config) {
+	constructor(private readonly config: Config) {
 		this.config = config
 	}
 
@@ -456,7 +462,7 @@ export default class GameMoney {
 		}
 
 		if (response.state === 'error') {
-			throw new Error(response.error)
+			throw new GameMoneyError(response.error!)
 		}
 
 		return response
