@@ -1,6 +1,6 @@
 {
   "name": "gamemoney",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "GameMoney API wrapper for Node.js",
   "keywords": [
     "gamemoney",
