@@ -262,8 +262,8 @@ export interface GetExchangeInfoRequest {
 }
 
 export interface GetExchangeRateResponse {
-	buy: string
-	sell: string
+	buy: number
+	sell: number
 }
 
 export interface GetExchangeInfoResponse {
