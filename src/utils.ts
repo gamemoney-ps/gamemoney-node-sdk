@@ -1,9 +1,8 @@
-import { URL } from 'node:url'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
-const publicCert = fs.readFileSync(path.join(__dirname, '../certs/gm.crt')).toString()
+const publicCert = fs.readFileSync(path.join(__dirname, './certs/gm.crt')).toString()
 
 export type RsaKey = Parameters<crypto.Sign['sign']>[0]
 export type HmacKey = Parameters<typeof crypto.createHmac>[1]
