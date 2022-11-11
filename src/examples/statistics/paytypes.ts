@@ -1,5 +1,7 @@
 import gm from '../gm.js'
 
-const response = await gm.getPayTypesStatistics()
+(async () => {
+	const response = await gm.getPayTypesStatistics()
 
-console.log(response)
+	console.log(response)
+})()

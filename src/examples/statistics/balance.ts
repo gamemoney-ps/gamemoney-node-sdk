@@ -1,7 +1,9 @@
 import gm from '../gm.js'
 
-const response = await gm.getBalanceStatistics({
-	currency: 'RUB',
-})
+(async () => {
+	const response = await gm.getBalanceStatistics({
+		currency: 'RUB',
+	})
 
-console.log(response)
+	console.log(response)
+})()

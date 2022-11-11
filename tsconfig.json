@@ -1,7 +1,17 @@
 {
 	"extends": "@onmoon/tsconfigs/node-module",
 	"compilerOptions": {
-		"outDir": ".build"
+		"module": "commonjs",
+		"esModuleInterop": true,
+		"target": "es6",
+		"declaration": true,
+		"removeComments": true,
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"outDir": ".build",
+		"lib": [
+			"esnext"
+		]
 	},
 	"include": [
 		"src/**/*.ts"

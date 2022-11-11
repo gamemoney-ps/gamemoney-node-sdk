@@ -4,9 +4,10 @@
 
 Full API documentation [here](https://cp.gmpays.com/apidoc)
 
-## Installation 
+## Installation
+
 ```sh
-$ npm install gamemoney
+$ npm i gamemoney
 ```
 
 ## Usage
