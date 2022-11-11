@@ -1,9 +1,9 @@
 {
-    "extends": "@onmoon/tsconfigs/node-module",
-    "compilerOptions": {
-        "outDir": ".build"
-    },
-    "include": [
-        "src/**/*.ts"
-    ]
+	"extends": "@onmoon/tsconfigs/node-module",
+	"compilerOptions": {
+		"outDir": ".build"
+	},
+	"include": [
+		"src/**/*.ts"
+	]
 }
