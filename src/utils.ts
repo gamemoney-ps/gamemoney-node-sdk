@@ -2,10 +2,11 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
-const publicCert = fs.readFileSync(path.join(__dirname, './certs/gm.crt')).toString()
-// const publicCert = ''
-// console.log('[__dirname]', __dirname, Date.now())
-// console.log('[path.resolve]', path.resolve('.'), Date.now())
+let publicCertPath = path.join(path.resolve(), './src/certs/gm.crt')
+if (process.env.NODE_ENV !== 'test') {
+	publicCertPath = path.join(__dirname, './certs/gm.crt')
+}
+const publicCert = fs.readFileSync(publicCertPath).toString()
 
 export type RsaKey = Parameters<crypto.Sign['sign']>[0]
 export type HmacKey = Parameters<typeof crypto.createHmac>[1]
