@@ -254,6 +254,17 @@ export type FastConvertExchangeResponse = {
 	rate: number
 }
 
+export type GetExchangeRateRequest = {
+	[key: string]: any
+	from: string
+	to: string
+}
+
+export type GetExchangeRateResponse = {
+	buy: number
+	sell: number
+}
+
 export type GetExchangeInfoRequest = {
 	[key: string]: any
 	minAmount: number
@@ -595,6 +606,14 @@ export default class GameMoney {
 	public async fastConvertExchange(body: FastConvertExchangeRequest) {
 		return this.request<FastConvertExchangeResponse & GenericResponse>(
 			'exchange/fastconvert',
+			body,
+		)
+	}
+
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_rate) */
+	public async getExchangeRate(body: GetExchangeRateRequest) {
+		return this.request<GetExchangeRateResponse & GenericResponse>(
+			'exchange/rate',
 			body,
 		)
 	}
