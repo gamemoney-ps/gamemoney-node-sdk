@@ -1,7 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import gm from '../gm.js'
-import { TransferNotification } from '../../index.js'
+import { type TransferNotification } from '../../index.js'
 
 const app = express()
 

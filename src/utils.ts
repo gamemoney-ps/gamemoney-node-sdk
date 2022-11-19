@@ -12,9 +12,9 @@ export type HmacKey = Parameters<typeof crypto.createHmac>[1]
 type JsonPrimitive = number | number[] | string | string[] | undefined | null
 type Json = { [key: string]: Json | JsonPrimitive }
 
-interface Body extends Json {
+type Body = {
 	signature: string
-}
+} & Json
 
 export function parametersToString(body: Json): string {
 	let parametersString = ''

@@ -1,7 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import gm from '../gm.js'
-import { CheckoutNotification } from '../../index.js'
+import { type CheckoutNotification } from '../../index.js'
 
 const app = express()
 
