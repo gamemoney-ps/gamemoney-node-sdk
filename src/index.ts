@@ -4,8 +4,8 @@ import {
 	generateHmacSignature,
 	getRandomString,
 	verifyRsaSignature,
-	RsaKey,
-	HmacKey,
+	type RsaKey,
+	type HmacKey,
 } from './utils.js'
 
 export enum SignType {
@@ -13,14 +13,14 @@ export enum SignType {
 	'RSA' = 'RSA',
 }
 
-export interface GenericRequest {
+export type GenericRequest = {
 	[key: string]: any
 	rand?: string
 	project: number
 	signature?: string
 }
 
-export interface GenericResponse {
+export type GenericResponse = {
 	[key: string]: any
 	state: 'success' | 'error'
 	time: number
@@ -28,13 +28,13 @@ export interface GenericResponse {
 	rand?: string
 	signature: string
 }
-export interface Config {
+export type Config = {
 	rsaPrivateKey?: RsaKey
 	hmacPrivateKey: HmacKey
 	project: number
 }
 
-export interface CreateInvoiceRequest {
+export type CreateInvoiceRequest = {
 	[key: string]: any
 	type: string
 	user: string
@@ -49,20 +49,23 @@ export interface CreateInvoiceRequest {
 	user_currency?: string
 	language?: string
 	mode?: 'card_direct'
+	return_mode?: 'skip'
+	recurring?: 'yes'
+	recurrent_token?: string
 }
 
-export interface CreateInvoiceResponse {
+export type CreateInvoiceResponse = {
 	invoice: number
 	type: 'message' | 'redirect' | 'cardrequest' | 'error'
 	data: string
 }
 
-export interface GetInvoiceStatusRequestWithProjectInvoiceId {
+export type GetInvoiceStatusRequestWithProjectInvoiceId = {
 	[key: string]: any
 	invoice: number
 }
 
-export interface GetInvoiceStatusRequestWithGamemoneyInvoiceId {
+export type GetInvoiceStatusRequestWithGamemoneyInvoiceId = {
 	[key: string]: any
 	project_invoice: string
 }
@@ -71,7 +74,7 @@ export type GetInvoiceStatusRequest =
 	| GetInvoiceStatusRequestWithProjectInvoiceId
 	| GetInvoiceStatusRequestWithGamemoneyInvoiceId
 
-export interface GetInvoiceStatusResponse {
+export type GetInvoiceStatusResponse = {
 	project: number
 	invoice: number
 	status: string
@@ -81,36 +84,41 @@ export interface GetInvoiceStatusResponse {
 	user: string
 	type: string
 	wallet: string
+	comment: string
 	project_invoice: string
 	currency_project: string
 	currency_user: string
 	date_create: string
 	date_pay: string
 	rate?: string
+	recurrent_token?: string
+	reason?: string
+	txid?: string
 }
 
-export interface GetInvoiceListRequest {
+export type GetInvoiceListRequest = {
 	[key: string]: any
 	start: string
 	finish: string
+	status?: InvoiceStatus
 }
 
-export interface GetInvoiceListResponse {
+export type GetInvoiceListResponse = {
 	list: GetInvoiceStatusResponse[]
 	is_limit_exceeded: 'yes' | 'no'
 }
 
-export interface CancelCheckoutRequest {
+export type CancelCheckoutRequest = {
 	[key: string]: any
 	projectId: string
 }
 
-export interface GetCheckoutStatusRequest {
+export type GetCheckoutStatusRequest = {
 	[key: string]: any
 	projectId: string
 }
 
-export interface Refund {
+export type Refund = {
 	id: number
 	amount: number
 	net_amount: number
@@ -118,7 +126,7 @@ export interface Refund {
 	comment: string
 }
 
-export interface GetCheckoutStatusResponse {
+export type GetCheckoutStatusResponse = {
 	id: number
 	project: number
 	projectId: string
@@ -130,26 +138,26 @@ export interface GetCheckoutStatusResponse {
 	wallet: string
 	description: string
 	comment: string
-	redirect_url: string
 	type: string
 	currency_project: string
 	currency_user: string
 	date_create: string
 	rate?: string
-	refunds: Refund[]
+	txid?: string
 }
 
-export interface GetCheckoutListRequest {
+export type GetCheckoutListRequest = {
 	[key: string]: any
 	start: string
 	finish: string
 }
 
-export interface GetCheckoutListResponse {
+export type GetCheckoutListResponse = {
 	list: GetCheckoutStatusResponse[]
+	is_limit_exceeded: 'yes' | 'no'
 }
 
-export interface CreateCheckoutRequest {
+export type CreateCheckoutRequest = {
 	[key: string]: any
 	projectId: string
 	user: string
@@ -160,42 +168,43 @@ export interface CreateCheckoutRequest {
 	type: string
 	currency?: string
 	userCurrency?: string
+	prepareToken?: string
 }
 
-export interface AddCardRequest {
+export type AddCardRequest = {
 	[key: string]: any
 	user: string
 	redirect: string
 }
 
-export interface AddCardResponse {
+export type AddCardResponse = {
 	url: string
 }
 
-export interface AddTokenCardRequest {
+export type AddTokenCardRequest = {
 	[key: string]: any
 	user: string
 }
 
-export interface AddTokenCardResponse {
+export type AddTokenCardResponse = {
 	token: string
 }
 
-export interface GetCardListRequest {
+export type GetCardListRequest = {
 	[key: string]: any
 	user: string
 }
 
-export interface GetCardListResponse {
+export type GetCardListResponse = {
 	pans: string[]
 }
 
-export interface GetCardFullListRequest {
+export type GetCardFullListRequest = {
 	[key: string]: any
 	user: string
 }
 
-export interface GetCardFullListResponse {
+export type GetCardFullListResponse = {
 	cards?: Array<{
 		pan: string
 		expire_month: string
@@ -204,13 +213,13 @@ export interface GetCardFullListResponse {
 	}>
 }
 
-export interface DeleteCardRequest {
+export type DeleteCardRequest = {
 	[key: string]: any
 	user: string
 	pan: string
 }
 
-export interface PrepareExchangeRequest {
+export type PrepareExchangeRequest = {
 	[key: string]: any
 	externalId: string
 	minAmount: number
@@ -220,32 +229,32 @@ export interface PrepareExchangeRequest {
 	livetime?: number
 }
 
-export interface PrepareExchangeResponse {
+export type PrepareExchangeResponse = {
 	id: number
 	rate: number
 	exchanged_amount_from: number
 	exchanged_amount_to: number
 }
 
-export interface ConvertExchangeRequest {
+export type ConvertExchangeRequest = {
 	[key: string]: any
 	id: number
 	amount: number
 }
 
-export interface FastConvertExchangeRequest {
+export type FastConvertExchangeRequest = {
 	[key: string]: any
 	amount: number
 	from: string
 	to: string
 }
 
-export interface FastConvertExchangeResponse {
+export type FastConvertExchangeResponse = {
 	id: number
 	rate: number
 }
 
-export interface GetExchangeInfoRequest {
+export type GetExchangeInfoRequest = {
 	[key: string]: any
 	minAmount: number
 	maxAmount: number
@@ -255,19 +264,19 @@ export interface GetExchangeInfoRequest {
 	rateType?: 'exchange' | 'invoice' | 'checkout'
 }
 
-export interface GetExchangeInfoResponse {
+export type GetExchangeInfoResponse = {
 	rate: number
 	exchanged_amount_from: number
 	exchanged_amount_to: number
 }
 
-export interface GetExchangeStatusRequest {
+export type GetExchangeStatusRequest = {
 	[key: string]: any
 	id?: number
 	externalId?: string
 }
 
-export interface GetExchangeStatusResponse {
+export type GetExchangeStatusResponse = {
 	id: number
 	from: string
 	to: string
@@ -277,12 +286,12 @@ export interface GetExchangeStatusResponse {
 	status: string
 }
 
-export interface GetBalanceStatisticsRequest {
+export type GetBalanceStatisticsRequest = {
 	[key: string]: any
 	currency: string
 }
 
-export interface GetBalanceStatisticsResponse {
+export type GetBalanceStatisticsResponse = {
 	project: number
 	currency: string
 	project_income: number
@@ -293,26 +302,26 @@ export interface GetBalanceStatisticsResponse {
 	contract_balance: number
 }
 
-export interface GetDaysBalanceStatisticsRequest {
+export type GetDaysBalanceStatisticsRequest = {
 	[key: string]: any
 	currency: string
 	start: string
 	finish: string
 }
 
-export interface DaysBalance {
+export type DaysBalance = {
 	date: string
 	income: number
 	outcome: number
 }
 
-export interface GetDaysBalanceStatisticsResponse {
+export type GetDaysBalanceStatisticsResponse = {
 	project: number
 	currency: string
 	days_balance: DaysBalance[]
 }
 
-export interface PaySystem {
+export type PaySystem = {
 	type: string
 	fee: number
 	fixed_fee: number
@@ -323,13 +332,13 @@ export interface PaySystem {
 	terminal?: 'enabled' | 'disabled'
 }
 
-export interface GetPayTypesStatisticsResponse {
+export type GetPayTypesStatisticsResponse = {
 	project: number
 	invoice: PaySystem[]
 	checkout: PaySystem[]
 }
 
-export interface CreateTerminalRequest {
+export type CreateTerminalRequest = {
 	[key: string]: any
 	user: string
 	ip: string
@@ -345,20 +354,23 @@ export interface CreateTerminalRequest {
 	terminal_disable_methods?: string[]
 }
 
-export interface CreateTerminalResponse {
+export type CreateTerminalResponse = {
 	url: string
 }
 
-export interface InvoiceNotification {
+export type InvoiceStatus =
+	| 'New'
+	| 'Processing'
+	| 'Paid'
+	| 'Chargeback'
+	| 'Refund'
+	| 'Chargeback_cancel'
+	| 'Refused'
+
+export type InvoiceNotification = {
 	project: number
 	invoice: number
-	status:
-		| 'New'
-		| 'Processing'
-		| 'Paid'
-		| 'Chargeback'
-		| 'Chargeback_cancel'
-		| 'Refused'
+	status: InvoiceStatus
 	amount: number
 	net_amount: number
 	recieved_amount: number
@@ -371,10 +383,15 @@ export interface InvoiceNotification {
 	project_invoice?: string
 	currency_project: string
 	currency_user: string
+	date_create: string
+	date_pay?: string
+	recurrent_token?: string
 	reason?: string
+	txid?: string
 	signature: string
 }
-export interface CheckoutNotification {
+
+export type CheckoutNotification = {
 	id: number
 	project: number
 	projectId: string
@@ -390,12 +407,13 @@ export interface CheckoutNotification {
 	type: string
 	currency_project: string
 	currency_user: string
+	date_create: string
+	txid?: string
 	time: string
 	signature: string
-	refunds?: Refund[]
 }
 
-export interface TransferNotification {
+export type TransferNotification = {
 	amount: number
 	currency: string
 	user: string
@@ -492,7 +510,7 @@ export default class GameMoney {
 		)
 	}
 
-	/** For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#invoice_list) */
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_list) */
 	public async getInvoiceList(body: GetInvoiceListRequest) {
 		return this.request<GetInvoiceListResponse & GenericResponse>(
 			'invoice/list',
@@ -518,7 +536,7 @@ export default class GameMoney {
 		)
 	}
 
-	/** For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#checkout_list) */
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_list) */
 	public async getCheckoutList(body: GetCheckoutListRequest) {
 		return this.request<GetCheckoutListResponse & GenericResponse>(
 			'checkout/list',
@@ -620,7 +638,7 @@ export default class GameMoney {
 		)
 	}
 
-	/** For more details and usage information see [docs](https://cp.gamemoney.com/apidoc#invoice_api_terminal) */
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_api_terminal) */
 	public async createTerminal(body: CreateTerminalRequest) {
 		return this.request<CreateTerminalResponse & GenericResponse>(
 			'terminal/create',
