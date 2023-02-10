@@ -352,7 +352,6 @@ export type GetPayTypesStatisticsResponse = {
 export type CreateTerminalRequest = {
 	[key: string]: any
 	user: string
-	ip: string
 	amount?: number
 	comment?: string
 	success_url?: string
