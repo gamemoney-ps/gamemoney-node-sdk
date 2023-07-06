@@ -108,6 +108,24 @@ export type GetInvoiceListResponse = {
 	is_limit_exceeded: 'yes' | 'no'
 }
 
+export type GetCardSessionStatusRequest = Record<string, any> &
+	({ invoice: string } | { project_invoice: string })
+
+export type WaitOrDeclineCardSessionStatusResponse = {
+	status: 'wait' | 'decline'
+	data: string
+}
+
+export type FinishCardSessionStatusResponse = {
+	status: 'finish'
+	type: 'redirect'
+	data: string
+}
+
+export type GetCardSessionStatusResponse =
+	| WaitOrDeclineCardSessionStatusResponse
+	| FinishCardSessionStatusResponse
+
 export type CancelCheckoutRequest = {
 	[key: string]: any
 	projectId: string
@@ -524,6 +542,14 @@ export default class GameMoney {
 	public async getInvoiceList(body: GetInvoiceListRequest) {
 		return this.request<GetInvoiceListResponse & GenericResponse>(
 			'invoice/list',
+			body,
+		)
+	}
+
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_session_status) */
+	public async getCardSessionStatus(body: GetCardSessionStatusRequest) {
+		return this.request<GetCardSessionStatusResponse & GenericResponse>(
+			'invoice/cardsession/status',
 			body,
 		)
 	}
