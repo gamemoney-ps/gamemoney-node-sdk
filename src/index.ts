@@ -396,13 +396,13 @@ export type InvoiceStatus =
 	| 'Refused'
 
 export type InvoiceNotification = {
-	project: number
-	invoice: number
+	project: string
+	invoice: string
 	status: InvoiceStatus
-	amount: number
-	net_amount: number
-	recieved_amount: number
-	rate?: number
+	amount: string
+	net_amount: string
+	recieved_amount: string
+	rate?: string
 	user: string
 	type: string
 	wallet: string
