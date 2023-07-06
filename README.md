@@ -1,4 +1,4 @@
-![GameMoney](https://auth.gamemoney.com/assets/img/logo_gamemoney_login.png)
+![GameMoney](https://cp.gmpays.com/assets/img/gm_logo.png)
 
 [GameMoney](https://gmpays.com/) API wrapper for Node.js
 
