@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 import process from 'node:process'
 import GameMoney from '../index.js'
 
-export default new GameMoney({
+const gm = new GameMoney({
 	// Optional. But to make checkouts must be specified
 	rsaPrivateKey: Buffer.from(
 		process.env.GAMEMONEY_RSA_PRIVATE_KEY ?? '',
@@ -13,3 +13,5 @@ export default new GameMoney({
 	hmacPrivateKey: process.env.GAMEMONEY_HMAC_PRIVATE_KEY ?? '',
 	project: Number(process.env.GAMEMONEY_PROJECT_ID),
 })
+
+export default gm
