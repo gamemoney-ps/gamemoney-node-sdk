@@ -113,6 +113,12 @@ export type GetInvoiceListResponse = {
 export type GetCardSessionStatusRequest = Record<string, any> &
 	({ invoice: string } | { project_invoice: string })
 
+export type AddTokenInvoiceRequest = Record<string, any> & { user: string }
+
+export type AddTokenInvoiceResponse = {
+	token: string
+}
+
 export type WaitOrDeclineCardSessionStatusResponse = {
 	status: 'wait' | 'decline'
 	data: string
@@ -552,6 +558,14 @@ export default class GameMoney {
 	public async getCardSessionStatus(body: GetCardSessionStatusRequest) {
 		return this.request<GetCardSessionStatusResponse & GenericResponse>(
 			'invoice/cardsession/status',
+			body,
+		)
+	}
+
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_add_token) */
+	public async addTokenInvoice(body: AddTokenInvoiceRequest) {
+		return this.request<AddTokenInvoiceResponse & GenericResponse>(
+			'invoice/addtoken',
 			body,
 		)
 	}
