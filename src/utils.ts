@@ -10,9 +10,9 @@ export type RsaKey = Parameters<crypto.Sign['sign']>[0]
 export type HmacKey = Parameters<typeof crypto.createHmac>[1]
 
 type JsonPrimitive = number | number[] | string | string[] | undefined | null
-type Json = { [key: string]: Json | JsonPrimitive }
+export type Json = { [key: string]: Json | JsonPrimitive }
 
-type Body = {
+export type Body = {
 	signature: string
 } & Json
 
@@ -31,9 +31,7 @@ export function parametersToString(body: Json): string {
 			continue
 		}
 
-		if (value === null || value === undefined) {
-			value = ''
-		}
+		value ??= ''
 
 		if (typeof value === 'object' && value !== null) {
 			value = parametersToString(value as Json)

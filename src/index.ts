@@ -6,6 +6,8 @@ import {
 	verifyRsaSignature,
 	type RsaKey,
 	type HmacKey,
+	type Json,
+	type Body,
 } from './utils.js'
 
 export enum SignType {
@@ -110,6 +112,12 @@ export type GetInvoiceListResponse = {
 
 export type GetCardSessionStatusRequest = Record<string, any> &
 	({ invoice: string } | { project_invoice: string })
+
+export type AddTokenInvoiceRequest = Record<string, any> & { user: string }
+
+export type AddTokenInvoiceResponse = {
+	token: string
+}
 
 export type WaitOrDeclineCardSessionStatusResponse = {
 	status: 'wait' | 'decline'
@@ -420,13 +428,13 @@ export type InvoiceNotification = {
 }
 
 export type CheckoutNotification = {
-	id: number
-	project: number
+	id: string
+	project: string
 	projectId: string
-	amount: number
-	net_amount: number
-	paid_amount: number
-	rate?: number
+	amount: string
+	net_amount: string
+	paid_amount: string
+	rate?: string
 	status: string
 	user: string
 	wallet: string
@@ -442,12 +450,12 @@ export type CheckoutNotification = {
 }
 
 export type TransferNotification = {
-	amount: number
+	amount: string
 	currency: string
 	user: string
 	type: string
 	ip: string
-	time: number
+	time: string
 	comment: string
 	signature: string
 }
@@ -514,11 +522,11 @@ export default class GameMoney {
 		return response
 	}
 
-	public generateHmacSignature(body: any) {
+	public generateHmacSignature(body: Json) {
 		return generateHmacSignature(body, this.config.hmacPrivateKey)
 	}
 
-	public verifyRsaSignature(body: any) {
+	public verifyRsaSignature(body: Body) {
 		return verifyRsaSignature(body)
 	}
 
@@ -550,6 +558,14 @@ export default class GameMoney {
 	public async getCardSessionStatus(body: GetCardSessionStatusRequest) {
 		return this.request<GetCardSessionStatusResponse & GenericResponse>(
 			'invoice/cardsession/status',
+			body,
+		)
+	}
+
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_add_token) */
+	public async addTokenInvoice(body: AddTokenInvoiceRequest) {
+		return this.request<AddTokenInvoiceResponse & GenericResponse>(
+			'invoice/addtoken',
 			body,
 		)
 	}
