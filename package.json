@@ -1,6 +1,6 @@
 {
-	"name": "gamemoney",
-	"version": "7.0.0",
+	"name": "@an00b1s/gamemoney",
+	"version": "7.0.1",
 	"description": "GameMoney API wrapper for Node.js",
 	"keywords": [
 		"gamemoney",
@@ -8,7 +8,7 @@
 		"gm",
 		"merchant"
 	],
-	"homepage": "https://github.com/gamemoney-ps/gamemoney-node-sdk#readme",
+	"homepage": "https://github.com/aN00B1s/gamemoney-node-sdk",
 	"bugs": {
 		"url": "https://github.com/gamemoney-ps/gamemoney-node-sdk/issues",
 		"email": "maxpain177@gmail.com"
@@ -21,7 +21,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/gamemoney-ps/gamemoney-node-sdk"
+		"url": "https://github.com/aN00B1s/gamemoney-node-sdk"
 	},
 	"type": "module",
 	"exports": {
