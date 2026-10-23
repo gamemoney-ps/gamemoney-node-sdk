@@ -1,4 +1,4 @@
-import gm from '../gm.js'
+import gm from '../gm.ts'
 
 // Get exchange status with internal project exchange id
 const response1 = await gm.getExchangeStatus({

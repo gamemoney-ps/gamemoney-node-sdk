@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 import process from 'node:process'
-import GameMoney from '../index.js'
+import GameMoney from '../index.ts'
 
 export default new GameMoney({
 	// Optional. But to make checkouts must be specified

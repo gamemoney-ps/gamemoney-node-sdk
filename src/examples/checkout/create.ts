@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import { v4 as uuidv4 } from 'uuid'
-import gm from '../gm.js'
-import { GameMoneyError } from '../../index.js'
+import { randomUUID } from 'node:crypto'
+import gm from '../gm.ts'
+import { GameMoneyError } from '../../index.ts'
 
-const projectCheckoutId = uuidv4()
+const projectCheckoutId = randomUUID()
 
 try {
 	const response = await gm.createCheckout({
@@ -11,8 +10,8 @@ try {
 		user: '1',
 		ip: '72.14.192.0',
 		amount: 200.5,
-		wallet: '89123456789',
-		type: 'qiwi',
+		wallet: '111111******2222',
+		type: 'card',
 		description: 'Payout for user account 250115125',
 		add_some_field: 'some value',
 	})

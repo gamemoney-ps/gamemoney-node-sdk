@@ -1,6 +1,12 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
-import { parametersToString, verifyRsaSignature } from './utils.js'
+import assert from 'node:assert/strict'
+import crypto from 'node:crypto'
+import { describe, it } from 'node:test'
+import {
+	generateRsaSignature,
+	parametersToString,
+	stringifyForm,
+	verifyRsaSignature,
+} from './utils.ts'
 
 const testData = {
 	time: 1_541_624_157,
@@ -19,7 +25,7 @@ describe('parametersToString', () => {
 		const expectedResult =
 			'currency:rub;days_balance:;project:42;rand:95c1d52957a36e302963;state:success;time:1541624157;'
 
-		expect(result).toEqual(expectedResult)
+		assert.equal(result, expectedResult)
 	})
 })
 
@@ -27,6 +33,34 @@ describe('RSA', () => {
 	it('should verify request with RSA', () => {
 		const result = verifyRsaSignature(testData)
 
-		expect(result).toEqual(true)
+		assert.equal(result, true)
+	})
+
+	it('should verify request with the given public key', () => {
+		const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+			modulusLength: 2048,
+		})
+		const body = { project: 42, rand: 'abc', state: 'success', signature: '' }
+		body.signature = generateRsaSignature(body, privateKey)
+
+		assert.equal(verifyRsaSignature(body, publicKey), true)
+		assert.equal(verifyRsaSignature(body), false)
+	})
+})
+
+describe('stringifyForm', () => {
+	it('should encode values the same way as gamemoney@3.1.0', () => {
+		const result = stringifyForm({
+			list: ['x', 'y'],
+			object: { key: 1 },
+			nullValue: null,
+			undefinedValue: undefined,
+			text: "!'()*~ +",
+		})
+
+		assert.equal(
+			result,
+			'list%5B0%5D=x&list%5B1%5D=y&object%5Bkey%5D=1&nullValue=&text=%21%27%28%29%2A~%20%2B',
+		)
 	})
 })

@@ -1,7 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
-import gm from '../gm.js'
-import { type InvoiceNotification } from '../../index.js'
+import gm from '../gm.ts'
+import type { InvoiceNotification } from '../../index.ts'
 
 const app = express()
 
@@ -13,13 +13,13 @@ app.post('/webhooks/handle_invoices', (request, response) => {
 
 	if (!gm.verifyRsaSignature(notification)) {
 		return response.send({
-			success: false,
+			success: 'error',
 			error: 'signature mismatch',
 		})
 	}
 
 	console.log(notification)
-	response.send({ success: true })
+	response.send({ success: 'true' })
 })
 
 app.listen(3000)

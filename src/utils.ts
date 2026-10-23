@@ -1,20 +1,21 @@
-import { URL } from 'node:url'
 import crypto from 'node:crypto'
-import fs from 'node:fs'
-
-const publicCert = fs
-	.readFileSync(new URL('certs/gm.crt', import.meta.url))
-	.toString()
+import { gameMoneyCertificate } from './certificate.ts'
 
 export type RsaKey = Parameters<crypto.Sign['sign']>[0]
+export type RsaPublicKey = Parameters<crypto.Verify['verify']>[0]
 export type HmacKey = Parameters<typeof crypto.createHmac>[1]
 
 type JsonPrimitive = number | number[] | string | string[] | undefined | null
 type Json = { [key: string]: Json | JsonPrimitive }
-
-type Body = {
-	signature: string
-} & Json
+type FormValue =
+	| string
+	| number
+	| boolean
+	| bigint
+	| undefined
+	| null
+	| FormValue[]
+	| { [key: string]: FormValue }
 
 export function parametersToString(body: Json): string {
 	let parametersString = ''
@@ -45,11 +46,62 @@ export function parametersToString(body: Json): string {
 	return parametersString
 }
 
-export function verifyRsaSignature(body: Body): boolean {
+// Wire format of gamemoney@3 (request + qs): RFC 3986 escaping, nested values as `key[index]=value`
+function encodeFormComponent(value: string): string {
+	return encodeURIComponent(value).replaceAll(
+		/[!'()*]/g,
+		(char) => `%${char.codePointAt(0)!.toString(16).toUpperCase()}`,
+	)
+}
+
+function appendFormValue(pairs: string[], key: string, value: FormValue) {
+	if (value === undefined) {
+		return
+	}
+
+	if (typeof value === 'object' && value !== null) {
+		for (const [nestedKey, nestedValue] of Object.entries(value)) {
+			appendFormValue(pairs, `${key}[${nestedKey}]`, nestedValue)
+		}
+
+		return
+	}
+
+	pairs.push(
+		`${encodeFormComponent(key)}=${encodeFormComponent(
+			value === null ? '' : String(value),
+		)}`,
+	)
+}
+
+export function stringifyForm(form: Record<string, FormValue>): string {
+	const pairs: string[] = []
+
+	for (const [key, value] of Object.entries(form)) {
+		appendFormValue(pairs, key, value)
+	}
+
+	return pairs.join('&')
+}
+
+export function verifyRsaSignature(
+	body: unknown,
+	publicKey: RsaPublicKey = gameMoneyCertificate,
+): boolean {
+	if (
+		typeof body !== 'object' ||
+		body === null ||
+		!('signature' in body) ||
+		typeof body.signature !== 'string' ||
+		body.signature === ''
+	) {
+		return false
+	}
+
 	return crypto
 		.createVerify('RSA-SHA256')
-		.update(parametersToString(body), 'utf8')
-		.verify(publicCert, body.signature, 'base64')
+		.update(parametersToString(body as Json), 'utf8')
+		.verify(publicKey, body.signature, 'base64')
 }
 
 export function generateRsaSignature(body: Json, key: RsaKey): string {

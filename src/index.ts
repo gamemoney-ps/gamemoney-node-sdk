@@ -1,17 +1,27 @@
-import got from 'got'
 import {
 	generateRsaSignature,
 	generateHmacSignature,
 	getRandomString,
+	stringifyForm,
 	verifyRsaSignature,
 	type RsaKey,
+	type RsaPublicKey,
 	type HmacKey,
-} from './utils.js'
+} from './utils.ts'
 
-export enum SignType {
-	'HMAC' = 'HMAC',
-	'RSA' = 'RSA',
-}
+export {
+	generateHmacSignature,
+	generateRsaSignature,
+	parametersToString,
+	verifyRsaSignature,
+} from './utils.ts'
+
+export const SignType = {
+	HMAC: 'HMAC',
+	RSA: 'RSA',
+} as const
+
+export type SignType = (typeof SignType)[keyof typeof SignType]
 
 export type GenericRequest = {
 	[key: string]: any
@@ -32,10 +42,13 @@ export type Config = {
 	rsaPrivateKey?: RsaKey
 	hmacPrivateKey: HmacKey
 	project: number
+	apiUrl?: string
+	gameMoneyPublicKey?: RsaPublicKey
+	timeout?: number
 }
 
 export type CreateInvoiceRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	type: string
 	user: string
 	ip: string
@@ -52,6 +65,8 @@ export type CreateInvoiceRequest = {
 	return_mode?: 'skip'
 	recurring?: 'yes'
 	recurrent_token?: string
+	payment_token?: string
+	theme?: 'dark' | 'light'
 }
 
 export type CreateInvoiceResponse = {
@@ -61,12 +76,12 @@ export type CreateInvoiceResponse = {
 }
 
 export type GetInvoiceStatusRequestWithProjectInvoiceId = {
-	[key: string]: any
+	[key: string]: unknown
 	invoice: number
 }
 
 export type GetInvoiceStatusRequestWithGamemoneyInvoiceId = {
-	[key: string]: any
+	[key: string]: unknown
 	project_invoice: string
 }
 
@@ -97,7 +112,7 @@ export type GetInvoiceStatusResponse = {
 }
 
 export type GetInvoiceListRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	start: string
 	finish: string
 	status?: InvoiceStatus
@@ -108,7 +123,16 @@ export type GetInvoiceListResponse = {
 	is_limit_exceeded: 'yes' | 'no'
 }
 
-export type GetCardSessionStatusRequest = Record<string, any> &
+export type AddTokenInvoiceRequest = {
+	[key: string]: unknown
+	user: string
+}
+
+export type AddTokenInvoiceResponse = {
+	token: string
+}
+
+export type GetCardSessionStatusRequest = Record<string, unknown> &
 	({ invoice: string } | { project_invoice: string })
 
 export type WaitOrDeclineCardSessionStatusResponse = {
@@ -127,12 +151,12 @@ export type GetCardSessionStatusResponse =
 	| FinishCardSessionStatusResponse
 
 export type CancelCheckoutRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	projectId: string
 }
 
 export type GetCheckoutStatusRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	projectId: string
 }
 
@@ -165,7 +189,7 @@ export type GetCheckoutStatusResponse = {
 }
 
 export type GetCheckoutListRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	start: string
 	finish: string
 }
@@ -176,7 +200,7 @@ export type GetCheckoutListResponse = {
 }
 
 export type CreateCheckoutRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	projectId: string
 	user: string
 	ip: string
@@ -189,10 +213,30 @@ export type CreateCheckoutRequest = {
 	prepareToken?: string
 }
 
+export type PrepareCheckoutRequest = Record<string, unknown> & {
+	type: string
+	wallet?: string
+	currency?: string
+	userCurrency?: string
+} & ({ amount: number } | { paid_amount: number })
+
+export type PrepareCheckoutResponse = {
+	amount: number
+	net_amount: number
+	paid_amount: number
+	currency_project: string
+	currency_user: string
+	token?: string
+	rate?: number
+	expire?: number
+}
+
 export type AddCardRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	user: string
 	redirect: string
+	language?: string
+	theme?: 'dark' | 'light'
 }
 
 export type AddCardResponse = {
@@ -200,7 +244,7 @@ export type AddCardResponse = {
 }
 
 export type AddTokenCardRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	user: string
 }
 
@@ -209,7 +253,7 @@ export type AddTokenCardResponse = {
 }
 
 export type GetCardListRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	user: string
 }
 
@@ -218,7 +262,7 @@ export type GetCardListResponse = {
 }
 
 export type GetCardFullListRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	user: string
 }
 
@@ -228,18 +272,19 @@ export type GetCardFullListResponse = {
 		expire_month: string
 		expire_year: string
 		cardholder: string
+		country?: string
 	}>
 }
 
 export type DeleteCardRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	user: string
 	pan: string
 }
 
 export type PrepareExchangeRequest = {
-	[key: string]: any
-	externalId: string
+	[key: string]: unknown
+	externalId?: string
 	minAmount: number
 	maxAmount: number
 	from: string
@@ -255,13 +300,13 @@ export type PrepareExchangeResponse = {
 }
 
 export type ConvertExchangeRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	id: number
 	amount: number
 }
 
 export type FastConvertExchangeRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	amount: number
 	from: string
 	to: string
@@ -273,7 +318,7 @@ export type FastConvertExchangeResponse = {
 }
 
 export type GetExchangeRateRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	from: string
 	to: string
 }
@@ -284,7 +329,7 @@ export type GetExchangeRateResponse = {
 }
 
 export type GetExchangeInfoRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	minAmount: number
 	maxAmount: number
 	from: string
@@ -300,7 +345,7 @@ export type GetExchangeInfoResponse = {
 }
 
 export type GetExchangeStatusRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	id?: number
 	externalId?: string
 }
@@ -316,7 +361,7 @@ export type GetExchangeStatusResponse = {
 }
 
 export type GetBalanceStatisticsRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	currency: string
 }
 
@@ -332,7 +377,7 @@ export type GetBalanceStatisticsResponse = {
 }
 
 export type GetDaysBalanceStatisticsRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	currency: string
 	start: string
 	finish: string
@@ -368,7 +413,7 @@ export type GetPayTypesStatisticsResponse = {
 }
 
 export type CreateTerminalRequest = {
-	[key: string]: any
+	[key: string]: unknown
 	user: string
 	amount?: number
 	comment?: string
@@ -378,8 +423,13 @@ export type CreateTerminalRequest = {
 	currency?: string
 	use_user_select_currency?: 'yes' | 'no'
 	language?: string
+	return_mode?: 'skip'
+	recurring?: 'yes'
 	terminal_allow_methods?: string[]
 	terminal_disable_methods?: string[]
+	terminal_livetime?: number
+	terminal_country?: string
+	terminal_theme?: 'dark' | 'light'
 }
 
 export type CreateTerminalResponse = {
@@ -446,6 +496,7 @@ export type TransferNotification = {
 	currency: string
 	user: string
 	type: string
+	project: number
 	ip: string
 	time: number
 	comment: string
@@ -460,13 +511,21 @@ export class GameMoneyError extends Error {
 		this.name = 'GameMoneyError'
 	}
 }
-export default class GameMoney {
-	private readonly got = got.extend({
-		prefixUrl: 'https://paygate.gamemoney.com',
-		responseType: 'json',
-	})
 
-	constructor(private readonly config: Config) {
+export class GameMoneyHttpError extends Error {
+	readonly status: number
+
+	constructor(status: number, statusText: string) {
+		super(`Response code ${status} (${statusText})`)
+		this.name = 'GameMoneyHttpError'
+		this.status = status
+	}
+}
+
+export class GameMoney {
+	private readonly config: Config
+
+	constructor(config: Config) {
 		this.config = config
 	}
 
@@ -476,13 +535,13 @@ export default class GameMoney {
 		signType: SignType = SignType.HMAC,
 	): Promise<T> {
 		const form: GenericRequest = {
-			rand: getRandomString(20),
-			project: this.config.project,
 			...payload,
+			project: (payload.project as number | undefined) ?? this.config.project,
+			rand: (payload.rand as string | undefined) ?? getRandomString(20),
 		}
 
 		if (signType === SignType.RSA) {
-			if (!this.config.rsaPrivateKey) {
+			if (this.config.rsaPrivateKey === undefined) {
 				throw new Error(
 					"To make requests with RSA sign type, 'rsaPrivateKey' must be provided",
 				)
@@ -493,13 +552,29 @@ export default class GameMoney {
 			form.signature = generateHmacSignature(form, this.config.hmacPrivateKey)
 		}
 
-		const response = await this.got.post<T>({
-			url,
-			form,
-			resolveBodyOnly: true,
-		})
+		const httpResponse = await fetch(
+			new URL(url, this.config.apiUrl ?? 'https://paygate.gamemoney.com'),
+			{
+				method: 'POST',
+				headers: {
+					accept: 'application/json',
+					'content-type': 'application/x-www-form-urlencoded',
+				},
+				body: stringifyForm(form),
+				signal:
+					this.config.timeout === undefined
+						? null
+						: AbortSignal.timeout(this.config.timeout),
+			},
+		)
 
-		if (!verifyRsaSignature(response)) {
+		if (!httpResponse.ok) {
+			throw new GameMoneyHttpError(httpResponse.status, httpResponse.statusText)
+		}
+
+		const response = (await httpResponse.json()) as T
+
+		if (!verifyRsaSignature(response, this.config.gameMoneyPublicKey)) {
 			throw new Error('Response signature mismatch')
 		}
 
@@ -514,12 +589,15 @@ export default class GameMoney {
 		return response
 	}
 
-	public generateHmacSignature(body: any) {
-		return generateHmacSignature(body, this.config.hmacPrivateKey)
+	public generateHmacSignature(body: Record<string, unknown>) {
+		return generateHmacSignature(
+			body as Parameters<typeof generateHmacSignature>[0],
+			this.config.hmacPrivateKey,
+		)
 	}
 
-	public verifyRsaSignature(body: any) {
-		return verifyRsaSignature(body)
+	public verifyRsaSignature(body: unknown) {
+		return verifyRsaSignature(body, this.config.gameMoneyPublicKey)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_insert_api) */
@@ -546,6 +624,14 @@ export default class GameMoney {
 		)
 	}
 
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_add_token) */
+	public async addTokenInvoice(body: AddTokenInvoiceRequest) {
+		return this.request<AddTokenInvoiceResponse & GenericResponse>(
+			'invoice/addtoken',
+			body,
+		)
+	}
+
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_session_status) */
 	public async getCardSessionStatus(body: GetCardSessionStatusRequest) {
 		return this.request<GetCardSessionStatusResponse & GenericResponse>(
@@ -557,6 +643,19 @@ export default class GameMoney {
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_insert) */
 	public async createCheckout(body: CreateCheckoutRequest) {
 		return this.request<GenericResponse>('checkout/insert', body, SignType.RSA)
+	}
+
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_prepare) */
+	public async prepareCheckout(body: PrepareCheckoutRequest) {
+		return this.request<PrepareCheckoutResponse & GenericResponse>(
+			'checkout/prepare',
+			body,
+		)
+	}
+
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_check) */
+	public async checkCheckout(body: CreateCheckoutRequest) {
+		return this.request<GenericResponse>('checkout/check', body, SignType.RSA)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_cancel) */
@@ -609,7 +708,7 @@ export default class GameMoney {
 		)
 	}
 
-	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_list) */
+	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_delete) */
 	public async deleteCard(body: DeleteCardRequest) {
 		return this.request<GenericResponse>('card/delete', body)
 	}
@@ -690,3 +789,5 @@ export default class GameMoney {
 		)
 	}
 }
+
+export default GameMoney

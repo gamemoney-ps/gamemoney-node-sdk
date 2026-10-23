@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid'
-import gm from '../gm.js'
+import { randomUUID } from 'node:crypto'
+import gm from '../gm.ts'
 
-const projectExchangeId = uuidv4()
+const projectExchangeId = randomUUID()
 
 const response = await gm.prepareExchange({
 	externalId: projectExchangeId,

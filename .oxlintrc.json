@@ -1,0 +1,30 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"options": {
+		"typeAware": true
+	},
+	"categories": {
+		"correctness": "error"
+	},
+	"rules": {
+		"typescript/no-floating-promises": [
+			"error",
+			{
+				"allowForKnownSafeCalls": [
+					{
+						"from": "package",
+						"package": "node:test",
+						"name": ["describe", "it", "test", "suite"]
+					}
+				]
+			}
+		],
+		"typescript/no-misused-promises": "error",
+		"typescript/no-unnecessary-type-assertion": "error",
+		"typescript/no-unsafe-argument": "error",
+		"typescript/only-throw-error": "error",
+		"typescript/prefer-promise-reject-errors": "error",
+		"typescript/strict-boolean-expressions": "error",
+		"typescript/switch-exhaustiveness-check": "error"
+	}
+}

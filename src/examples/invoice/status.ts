@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import gm from '../gm.js'
+import gm from '../gm.ts'
 
 // Get invoice status with internal project invoice id
 const response1 = await gm.getInvoiceStatus({

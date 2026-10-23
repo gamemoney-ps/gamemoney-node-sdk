@@ -1,4 +1,4 @@
-import gm from '../gm.js'
+import gm from '../gm.ts'
 
 const response = await gm.getInvoiceList({
 	start: '2022-01-01 00:00:00',
