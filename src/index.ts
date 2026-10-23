@@ -104,8 +104,8 @@ export type GetInvoiceStatusResponse = {
 	currency_project: string
 	currency_user: string
 	date_create: string
-	date_pay: string
-	rate?: string
+	date_pay?: string
+	rate?: number
 	recurrent_token?: string
 	reason?: string
 	txid?: string
@@ -184,7 +184,7 @@ export type GetCheckoutStatusResponse = {
 	currency_project: string
 	currency_user: string
 	date_create: string
-	rate?: string
+	rate?: number
 	txid?: string
 }
 
