@@ -132,24 +132,6 @@ export type AddTokenInvoiceResponse = {
 	token: string
 }
 
-export type GetCardSessionStatusRequest = Record<string, unknown> &
-	({ invoice: string } | { project_invoice: string })
-
-export type WaitOrDeclineCardSessionStatusResponse = {
-	status: 'wait' | 'decline'
-	data: string
-}
-
-export type FinishCardSessionStatusResponse = {
-	status: 'finish'
-	type: 'redirect'
-	data: string
-}
-
-export type GetCardSessionStatusResponse =
-	| WaitOrDeclineCardSessionStatusResponse
-	| FinishCardSessionStatusResponse
-
 export type CancelCheckoutRequest = {
 	[key: string]: unknown
 	projectId: string
@@ -326,22 +308,6 @@ export type GetExchangeRateRequest = {
 export type GetExchangeRateResponse = {
 	buy: number
 	sell: number
-}
-
-export type GetExchangeInfoRequest = {
-	[key: string]: unknown
-	minAmount: number
-	maxAmount: number
-	from: string
-	to: string
-	livetime?: number
-	rateType?: 'exchange' | 'invoice' | 'checkout'
-}
-
-export type GetExchangeInfoResponse = {
-	rate: number
-	exchanged_amount_from: number
-	exchanged_amount_to: number
 }
 
 export type GetExchangeStatusRequest = {
@@ -633,14 +599,6 @@ export class GameMoney {
 		)
 	}
 
-	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_session_status) */
-	public async getCardSessionStatus(body: GetCardSessionStatusRequest) {
-		return this.request<GetCardSessionStatusResponse & GenericResponse>(
-			'invoice/cardsession/status',
-			body,
-		)
-	}
-
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_insert) */
 	public async createCheckout(body: CreateCheckoutRequest) {
 		return this.request<GenericResponse>('checkout/insert', body, SignType.RSA)
@@ -739,14 +697,6 @@ export class GameMoney {
 	public async getExchangeRate(body: GetExchangeRateRequest) {
 		return this.request<GetExchangeRateResponse & GenericResponse>(
 			'exchange/rate',
-			body,
-		)
-	}
-
-	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_info) */
-	public async getExchangeInfo(body: GetExchangeInfoRequest) {
-		return this.request<GetExchangeInfoResponse & GenericResponse>(
-			'exchange/info',
 			body,
 		)
 	}
