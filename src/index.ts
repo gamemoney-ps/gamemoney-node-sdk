@@ -62,7 +62,6 @@ export type CreateInvoiceRequest = {
 	currency?: string
 	user_currency?: string
 	language?: string
-	mode?: 'card_direct'
 	return_mode?: 'skip'
 	recurring?: 'yes'
 	recurrent_token?: string
@@ -91,9 +90,10 @@ export type GetInvoiceStatusRequest =
 	| GetInvoiceStatusRequestWithGamemoneyInvoiceId
 
 export type GetInvoiceStatusResponse = {
+	[key: `add_${string}`]: string
 	project: number
 	invoice: number
-	status: string
+	status: InvoiceStatus
 	amount: number
 	net_amount: number
 	recieved_amount: number
@@ -152,13 +152,14 @@ export type Refund = {
 }
 
 export type GetCheckoutStatusResponse = {
+	[key: `add_${string}`]: string
 	id: number
 	project: number
 	projectId: string
 	amount: number
 	net_amount: number
 	paid_amount: number
-	status: number
+	status: CheckoutStatus
 	user: string
 	wallet: string
 	description: string
@@ -201,7 +202,7 @@ export type PrepareCheckoutRequest = Record<string, unknown> & {
 	wallet?: string
 	currency?: string
 	userCurrency?: string
-} & ({ amount: number } | { paid_amount: number })
+} & ({ amount: number } | { paid_amount: number; userCurrency: string })
 
 export type PrepareCheckoutResponse = {
 	amount: number
@@ -325,7 +326,7 @@ export type GetExchangeStatusResponse = {
 	rate: number
 	amount_from: number
 	amount_to: number
-	status: string
+	status: ExchangeStatus
 }
 
 export type GetBalanceStatisticsRequest = {
@@ -374,10 +375,16 @@ export type PaySystem = {
 	terminal?: 'enabled' | 'disabled'
 }
 
+export type InvoicePaySystem = Omit<PaySystem, 'terminal'> & {
+	terminal: 'enabled' | 'disabled'
+}
+
+export type CheckoutPaySystem = Omit<PaySystem, 'terminal'>
+
 export type GetPayTypesStatisticsResponse = {
 	project: number
-	invoice: PaySystem[]
-	checkout: PaySystem[]
+	invoice: InvoicePaySystem[]
+	checkout: CheckoutPaySystem[]
 }
 
 export type CreateTerminalRequest = {
@@ -389,7 +396,6 @@ export type CreateTerminalRequest = {
 	fail_url?: string
 	project_invoice?: string
 	currency?: string
-	use_user_select_currency?: 'yes' | 'no'
 	language?: string
 	return_mode?: 'skip'
 	recurring?: 'yes'
@@ -412,7 +418,12 @@ export type InvoiceStatus =
 	| 'Refund'
 	| 'Refused'
 
+export type CheckoutStatus = 0 | 2 | 5 | 10 | 11 | 12
+
+export type ExchangeStatus = 'New' | 'Done' | 'Refused'
+
 export type InvoiceNotification = {
+	[key: `add_${string}`]: string
 	project: string
 	invoice: string
 	status: InvoiceStatus
@@ -437,6 +448,7 @@ export type InvoiceNotification = {
 }
 
 export type CheckoutNotification = {
+	[key: `add_${string}`]: string
 	id: string
 	project: string
 	projectId: string
@@ -444,7 +456,7 @@ export type CheckoutNotification = {
 	net_amount: string
 	paid_amount: string
 	rate?: string
-	status: string
+	status: `${CheckoutStatus}`
 	user: string
 	wallet: string
 	description: string
