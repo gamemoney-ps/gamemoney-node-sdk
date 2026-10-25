@@ -1,4 +1,5 @@
 import {
+	compactForm,
 	generateRsaSignature,
 	generateHmacSignature,
 	getRandomString,
@@ -289,6 +290,7 @@ export type ConvertExchangeRequest = {
 
 export type FastConvertExchangeRequest = {
 	[key: string]: unknown
+	externalId?: string
 	amount: number
 	from: string
 	to: string
@@ -436,13 +438,13 @@ export type InvoiceNotification = {
 }
 
 export type CheckoutNotification = {
-	id: number
-	project: number
+	id: string
+	project: string
 	projectId: string
-	amount: number
-	net_amount: number
-	paid_amount: number
-	rate?: number
+	amount: string
+	net_amount: string
+	paid_amount: string
+	rate?: string
 	status: string
 	user: string
 	wallet: string
@@ -458,13 +460,13 @@ export type CheckoutNotification = {
 }
 
 export type TransferNotification = {
-	amount: number
+	amount: string
 	currency: string
 	user: string
 	type: string
-	project: number
+	project: string
 	ip: string
-	time: number
+	time: string
 	comment: string
 	signature: string
 }
@@ -500,11 +502,12 @@ export class GameMoney {
 		payload: Payload = {},
 		signType: SignType = SignType.HMAC,
 	): Promise<T> {
-		const form: GenericRequest = {
+		const form = compactForm({
 			...payload,
-			project: (payload.project as number | undefined) ?? this.config.project,
-			rand: (payload.rand as string | undefined) ?? getRandomString(20),
-		}
+			project: payload.project ?? this.config.project,
+			rand: payload.rand ?? getRandomString(20),
+		}) as GenericRequest
+		const apiUrl = this.config.apiUrl ?? 'https://paygate.gamemoney.com'
 
 		if (signType === SignType.RSA) {
 			if (this.config.rsaPrivateKey === undefined) {
@@ -519,7 +522,10 @@ export class GameMoney {
 		}
 
 		const httpResponse = await fetch(
-			new URL(url, this.config.apiUrl ?? 'https://paygate.gamemoney.com'),
+			new URL(
+				url.replace(/^\/+/, ''),
+				apiUrl.endsWith('/') ? apiUrl : `${apiUrl}/`,
+			),
 			{
 				method: 'POST',
 				headers: {

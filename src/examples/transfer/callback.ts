@@ -19,7 +19,7 @@ app.post('/webhooks/handle_transfers', async (request, response) => {
 
 	const { invoice } = await gm.createInvoice({
 		type: notification.type,
-		amount: notification.amount,
+		amount: Number(notification.amount),
 		currency: notification.currency,
 		user: notification.user,
 		ip: notification.ip,

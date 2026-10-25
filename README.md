@@ -59,12 +59,16 @@ const { GameMoney, verifyRsaSignature } = require('gamemoney')
 
 - `GameMoneyError`: GameMoney responded with `"state": "error"`, the error text is in `message`.
 - `GameMoneyHttpError`: GameMoney responded with a non-2xx HTTP status, available in `status`. Redirects are not followed, so a 3xx response throws it too.
-- `TimeoutError`: the request did not complete within `timeout`. GameMoney may still process it, so check the operation status (for example, with `getCheckoutStatus`) before retrying.
+- `TimeoutError`: the request did not complete within `timeout`.
+- `TypeError` with `fetch failed`: a network error, the reason is in `cause`.
+- `SyntaxError`: the response is not JSON.
 - `Error` with `Response signature mismatch` or `Wrong rand parameter`: the response failed verification and must not be trusted.
+
+Only `GameMoneyError` means that GameMoney rejected the request. After any other error the request may still have been processed, so check the operation status (for example, with `getCheckoutStatus`) before retrying.
 
 ### Notifications
 
-GameMoney resends payment and payout notifications for 24 hours until the project responds with `{"success": "true"}`:
+GameMoney sends notifications as a form (`application/x-www-form-urlencoded`), so parse them with `express.urlencoded()` or a similar parser. All values are strings. Payment and payout notifications are resent for 24 hours until the project responds with `{"success": "true"}`:
 
 ```typescript
 if (!gm.verifyRsaSignature(notification)) {

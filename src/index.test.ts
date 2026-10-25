@@ -3,27 +3,89 @@ import crypto from 'node:crypto'
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { after, before, describe, it } from 'node:test'
-import {
-	generateHmacSignature,
-	generateRsaSignature,
-	parametersToString,
-} from './utils.ts'
+import { generateRsaSignature } from './utils.ts'
 import { GameMoney, type CreateCheckoutRequest } from './index.ts'
 
-type Reply = (form: URLSearchParams) => {
+type Form = { [key: string]: string | Form }
+
+type Reply = (form: Form) => {
 	status?: number
 	delay?: number
 	headers?: Record<string, string>
-	body: Record<string, unknown>
+	body: Record<string, unknown> | string
 }
 
 const gmKeys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 })
 const merchantKeys = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 })
+const hmacKey = 'hmac-secret'
 const requests: Array<{
 	url: string | undefined
 	headers: http.IncomingHttpHeaders
 	body: string
 }> = []
+
+function parsePhpForm(body: string): Form {
+	const form: Form = {}
+
+	for (const [name, value] of new URLSearchParams(body)) {
+		const path = name.replaceAll(']', '').split('[')
+		let target = form
+
+		for (const key of path.slice(0, -1)) {
+			target = (target[key] ??= {}) as Form
+		}
+
+		target[path.at(-1)!] = value
+	}
+
+	return form
+}
+
+// GameMoney signs values sorted with PHP ksort: integer keys as numbers, the rest as strings
+function phpArrayToString(form: Form): string {
+	const isInteger = (key: string) => /^(?:0|-?[1-9]\d*)$/.test(key)
+
+	return Object.keys(form)
+		.sort((a, b) =>
+			isInteger(a) && isInteger(b)
+				? Number(a) - Number(b)
+				: a < b
+					? -1
+					: Number(a > b),
+		)
+		.map((key) => {
+			const value = form[key]!
+			return `${key}:${typeof value === 'string' ? value : phpArrayToString(value)};`
+		})
+		.join('')
+}
+
+function hasValidSignature(url: string | undefined, form: Form) {
+	const { signature, ...fields } = form
+
+	if (typeof signature !== 'string') {
+		return false
+	}
+
+	const text = phpArrayToString(fields)
+
+	if (
+		url !== undefined &&
+		(url.endsWith('/checkout/insert') || url.endsWith('/checkout/check'))
+	) {
+		return crypto.verify(
+			'sha256',
+			Buffer.from(text),
+			merchantKeys.publicKey,
+			Buffer.from(signature, 'base64'),
+		)
+	}
+
+	return (
+		signature ===
+		crypto.createHmac('sha256', hmacKey).update(text).digest('hex')
+	)
+}
 
 function signed(payload: Record<string, any>) {
 	return {
@@ -32,25 +94,8 @@ function signed(payload: Record<string, any>) {
 	}
 }
 
-function lastRequest() {
-	const { url, body } = requests.at(-1)!
-	const { signature, ...form } = Object.fromEntries(new URLSearchParams(body))
-
-	return { url, signature: signature!, form }
-}
-
-function isSignedByMerchant({
-	form,
-	signature,
-}: ReturnType<typeof lastRequest>) {
-	return crypto
-		.createVerify('RSA-SHA256')
-		.update(parametersToString(form), 'utf8')
-		.verify(merchantKeys.publicKey, signature, 'base64')
-}
-
 const success: Reply = (form) => ({
-	body: signed({ state: 'success', time: 1, rand: form.get('rand') }),
+	body: signed({ state: 'success', time: 1, rand: form.rand }),
 })
 
 let reply = success
@@ -63,18 +108,30 @@ const server = http.createServer((request, response) => {
 	})
 	request.on('end', () => {
 		requests.push({ url: request.url, headers: request.headers, body })
+		const form = parsePhpForm(body)
 		const {
 			status = 200,
 			delay = 0,
 			headers = {},
 			body: payload,
-		} = reply(new URLSearchParams(body))
+		} = hasValidSignature(request.url, form)
+			? reply(form)
+			: {
+					body: signed({
+						state: 'error',
+						error: 'signature mismatch',
+						time: 1,
+						rand: form.rand,
+					}),
+				}
 		setTimeout(() => {
 			response.writeHead(status, {
 				'content-type': 'application/json',
 				...headers,
 			})
-			response.end(JSON.stringify(payload))
+			response.end(
+				typeof payload === 'string' ? payload : JSON.stringify(payload),
+			)
 		}, delay)
 	})
 })
@@ -82,20 +139,28 @@ const server = http.createServer((request, response) => {
 let apiUrl: string
 let gm: GameMoney
 
+function client(options: Partial<ConstructorParameters<typeof GameMoney>[0]>) {
+	return new GameMoney({
+		project: 42,
+		hmacPrivateKey: hmacKey,
+		rsaPrivateKey: merchantKeys.privateKey,
+		apiUrl,
+		gameMoneyPublicKey: gmKeys.publicKey,
+		...options,
+	})
+}
+
+function sentFields() {
+	return requests.at(-1)!.body.split('&signature=')[0]
+}
+
 before(async () => {
 	await new Promise<void>((resolve) => {
 		server.listen(0, '127.0.0.1', resolve)
 	})
 	const { port } = server.address() as AddressInfo
 	apiUrl = `http://127.0.0.1:${port}`
-
-	gm = new GameMoney({
-		project: 42,
-		hmacPrivateKey: 'hmac-secret',
-		rsaPrivateKey: merchantKeys.privateKey,
-		apiUrl,
-		gameMoneyPublicKey: gmKeys.publicKey,
-	})
+	gm = client({})
 })
 
 after(() => {
@@ -136,10 +201,8 @@ describe('request format', () => {
 		await gm.request('invoice/', {
 			user: '1',
 			terminal_allow_methods: ['sbp', 'card'],
-			terminal_disable_methods: [],
 			nested: { b: 2, a: [1, { c: 'x y' }] },
 			nul: null,
-			undef: undefined,
 			bool: true,
 			boolf: false,
 			neg: -1.5,
@@ -150,9 +213,35 @@ describe('request format', () => {
 		})
 
 		assert.equal(
-			requests.at(-1)!.body,
-			'user=1&terminal_allow_methods%5B0%5D=sbp&terminal_allow_methods%5B1%5D=card&nested%5Bb%5D=2&nested%5Ba%5D%5B0%5D=1&nested%5Ba%5D%5B1%5D%5Bc%5D=x%20y&nul=&bool=true&boolf=false&neg=-1.5&big=1e%2B21&zero=0&empty=&rand=fixedrand00000000008&project=42&signature=e71865d10bb4addd4bad36efe076e8c87eb7b3acdceb24f4c97c69360568fd46',
+			sentFields(),
+			'user=1&terminal_allow_methods%5B0%5D=sbp&terminal_allow_methods%5B1%5D=card&nested%5Bb%5D=2&nested%5Ba%5D%5B0%5D=1&nested%5Ba%5D%5B1%5D%5Bc%5D=x%20y&nul=&bool=true&boolf=false&neg=-1.5&big=1e%2B21&zero=0&empty=&rand=fixedrand00000000008&project=42',
 		)
+	})
+
+	it('should sign only the fields that are sent', async () => {
+		reply = success
+		await gm.request('invoice/', {
+			user: '1',
+			comment: undefined,
+			terminal_disable_methods: [],
+			meta: { empty: {}, none: undefined },
+			list: [[], 'a'],
+			rand: 'fixedrand00000000009',
+		})
+
+		assert.equal(
+			sentFields(),
+			'user=1&list%5B1%5D=a&rand=fixedrand00000000009&project=42',
+		)
+	})
+
+	it('should sign integer keys in numeric order', async () => {
+		reply = success
+		const map = Object.fromEntries(
+			Array.from({ length: 11 }, (_, index) => [String(index), `v${index}`]),
+		)
+
+		await gm.request('invoice/', { user: '1', add_map: map })
 	})
 
 	it('should send signed exchange/rate request', async () => {
@@ -184,39 +273,43 @@ describe('request format', () => {
 		}
 
 		await gm.createCheckout(checkout)
-		const insert = lastRequest()
+		assert.equal(requests.at(-1)!.url, '/checkout/insert')
 		await gm.checkCheckout(checkout)
-		const check = lastRequest()
-
-		assert.equal(insert.url, '/checkout/insert')
-		assert.equal(insert.form.project, '42')
-		assert.equal(isSignedByMerchant(insert), true)
-		assert.equal(check.url, '/checkout/check')
-		assert.equal(isSignedByMerchant(check), true)
+		assert.equal(requests.at(-1)!.url, '/checkout/check')
 	})
 
 	it('should sign card payment token and payout preparation with HMAC', async () => {
 		reply = success
 		await gm.addTokenInvoice({ user: '1' })
-		const token = lastRequest()
+		assert.equal(requests.at(-1)!.url, '/invoice/addtoken')
 
 		await gm.prepareCheckout({
 			type: 'card',
 			wallet: '111111******2222',
 			amount: 10,
 		})
-		const prepare = lastRequest()
+		assert.equal(requests.at(-1)!.url, '/checkout/prepare')
+	})
 
-		assert.equal(token.url, '/invoice/addtoken')
-		assert.equal(
-			token.signature,
-			generateHmacSignature(token.form, 'hmac-secret'),
+	it('should be rejected with a wrong key', async () => {
+		reply = success
+
+		await assert.rejects(
+			client({ hmacPrivateKey: 'wrong' }).getBalanceStatistics({
+				currency: 'RUB',
+			}),
+			{ name: 'GameMoneyError', message: 'signature mismatch' },
 		)
-		assert.equal(prepare.url, '/checkout/prepare')
-		assert.equal(
-			prepare.signature,
-			generateHmacSignature(prepare.form, 'hmac-secret'),
-		)
+	})
+
+	it('should keep the path of apiUrl', async () => {
+		reply = success
+		const proxied = client({ apiUrl: `${apiUrl}/gm` })
+
+		await proxied.getBalanceStatistics({ currency: 'RUB' })
+		assert.equal(requests.at(-1)!.url, '/gm/statistics/balance')
+		await proxied.request('/exchange/rate', { from: 'USD', to: 'RUB' })
+		assert.equal(requests.at(-1)!.url, '/gm/exchange/rate')
 	})
 })
 
@@ -226,7 +319,7 @@ describe('response handling', () => {
 			body: signed({
 				state: 'success',
 				time: 1,
-				rand: form.get('rand'),
+				rand: form.rand,
 				buy: 90.1,
 				sell: 95.2,
 			}),
@@ -242,7 +335,7 @@ describe('response handling', () => {
 			body: signed({
 				state: 'error',
 				time: 1,
-				rand: form.get('rand'),
+				rand: form.rand,
 				error: 'Wrong signature',
 			}),
 		})
@@ -256,7 +349,7 @@ describe('response handling', () => {
 	it('should reject response with wrong signature', async () => {
 		reply = (form) => ({
 			body: {
-				...signed({ state: 'success', time: 1, rand: form.get('rand') }),
+				...signed({ state: 'success', time: 1, rand: form.rand }),
 				time: 2,
 			},
 		})
@@ -282,7 +375,7 @@ describe('response handling', () => {
 			body: signed({
 				state: 'error',
 				time: 1,
-				rand: form.get('rand'),
+				rand: form.rand,
 				error: 'Internal',
 			}),
 		})
@@ -317,22 +410,40 @@ describe('response handling', () => {
 		}
 	})
 
+	it('should reject response that is not JSON', async () => {
+		reply = () => ({ body: '<html>maintenance</html>' })
+
+		await assert.rejects(gm.getBalanceStatistics({ currency: 'RUB' }), {
+			name: 'SyntaxError',
+		})
+	})
+
+	it('should reject request on network error', async () => {
+		const closed = http.createServer()
+		await new Promise<void>((resolve) => {
+			closed.listen(0, '127.0.0.1', resolve)
+		})
+		const { port } = closed.address() as AddressInfo
+		await new Promise((resolve) => closed.close(resolve))
+
+		await assert.rejects(
+			client({ apiUrl: `http://127.0.0.1:${port}` }).getBalanceStatistics({
+				currency: 'RUB',
+			}),
+			{ name: 'TypeError', message: 'fetch failed' },
+		)
+	})
+
 	it('should abort request after configured timeout', async () => {
 		reply = (form) => ({
 			delay: 1000,
-			body: signed({ state: 'success', time: 1, rand: form.get('rand') }),
-		})
-		const client = new GameMoney({
-			project: 42,
-			hmacPrivateKey: 'hmac-secret',
-			apiUrl,
-			gameMoneyPublicKey: gmKeys.publicKey,
-			timeout: 50,
+			body: signed({ state: 'success', time: 1, rand: form.rand }),
 		})
 
-		await assert.rejects(client.getBalanceStatistics({ currency: 'RUB' }), {
-			name: 'TimeoutError',
-		})
+		await assert.rejects(
+			client({ timeout: 50 }).getBalanceStatistics({ currency: 'RUB' }),
+			{ name: 'TimeoutError' },
+		)
 	})
 
 	it('should verify notifications with configured public key', () => {

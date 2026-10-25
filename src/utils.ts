@@ -17,26 +17,32 @@ type FormValue =
 	| FormValue[]
 	| { [key: string]: FormValue }
 
-export function parametersToString(body: Json): string {
-	let parametersString = ''
-	const keys = Object.keys(body).sort()
+const integerKey = /^(?:0|-?[1-9]\d*)$/
 
-	if (Array.isArray(body)) {
-		keys.sort((a, b) => Number(a) - Number(b))
+// PHP ksort, used by GameMoney, compares integer keys as numbers and the rest as strings
+function compareKeys(a: string, b: string): number {
+	if (integerKey.test(a) && integerKey.test(b)) {
+		return Number(a) - Number(b)
 	}
 
-	for (const key of keys) {
+	return a < b ? -1 : a > b ? 1 : 0
+}
+
+export function parametersToString(body: Json): string {
+	let parametersString = ''
+
+	for (const key of Object.keys(body).sort(compareKeys)) {
 		let value = body[key]
 
-		if (key === 'signature') {
+		if (key === 'signature' || value === undefined) {
 			continue
 		}
 
-		if (value === null || value === undefined) {
+		if (value === null) {
 			value = ''
 		}
 
-		if (typeof value === 'object' && value !== null) {
+		if (typeof value === 'object') {
 			value = parametersToString(value as Json)
 		}
 
@@ -72,6 +78,25 @@ function appendFormValue(pairs: string[], key: string, value: FormValue) {
 			value === null ? '' : String(value),
 		)}`,
 	)
+}
+
+function compact(value: FormValue): FormValue {
+	if (typeof value !== 'object' || value === null) {
+		return value
+	}
+
+	const entries = Object.entries(value)
+		.map(([key, nested]) => [key, compact(nested)] as const)
+		.filter(([, nested]) => nested !== undefined)
+
+	return entries.length === 0 ? undefined : Object.fromEntries(entries)
+}
+
+// A form cannot carry undefined values or empty arrays and objects, so they are not signed either
+export function compactForm(
+	form: Record<string, unknown>,
+): Record<string, FormValue> {
+	return (compact(form as FormValue) ?? {}) as Record<string, FormValue>
 }
 
 export function stringifyForm(form: Record<string, FormValue>): string {
