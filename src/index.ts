@@ -75,19 +75,27 @@ export type CreateInvoiceResponse = {
 	data: string
 }
 
-export type GetInvoiceStatusRequestWithProjectInvoiceId = {
+export type GetInvoiceStatusByInvoiceRequest = {
 	[key: string]: unknown
 	invoice: number
 }
 
-export type GetInvoiceStatusRequestWithGamemoneyInvoiceId = {
+export type GetInvoiceStatusByProjectInvoiceRequest = {
 	[key: string]: unknown
 	project_invoice: string
 }
 
+/** @deprecated Use `GetInvoiceStatusByInvoiceRequest` */
+export type GetInvoiceStatusRequestWithProjectInvoiceId =
+	GetInvoiceStatusByInvoiceRequest
+
+/** @deprecated Use `GetInvoiceStatusByProjectInvoiceRequest` */
+export type GetInvoiceStatusRequestWithGamemoneyInvoiceId =
+	GetInvoiceStatusByProjectInvoiceRequest
+
 export type GetInvoiceStatusRequest =
-	| GetInvoiceStatusRequestWithProjectInvoiceId
-	| GetInvoiceStatusRequestWithGamemoneyInvoiceId
+	| GetInvoiceStatusByInvoiceRequest
+	| GetInvoiceStatusByProjectInvoiceRequest
 
 export type GetInvoiceStatusResponse = {
 	[key: `add_${string}`]: string
@@ -143,6 +151,7 @@ export type GetCheckoutStatusRequest = {
 	projectId: string
 }
 
+/** @deprecated Not returned by any API method */
 export type Refund = {
 	id: number
 	amount: number
@@ -399,8 +408,8 @@ export type CreateTerminalRequest = {
 	language?: string
 	return_mode?: 'skip'
 	recurring?: 'yes'
-	terminal_allow_methods?: string[]
-	terminal_disable_methods?: string[]
+	terminal_allow_methods?: readonly string[]
+	terminal_disable_methods?: readonly string[]
 	terminal_livetime?: number
 	terminal_country?: string
 	terminal_theme?: 'dark' | 'light'
@@ -474,7 +483,7 @@ export type TransferNotification = {
 	amount: string
 	currency: string
 	user: string
-	type: string
+	type: 'internal'
 	project: string
 	ip: string
 	time: string
@@ -502,10 +511,10 @@ export class GameMoneyHttpError extends Error {
 }
 
 export class GameMoney {
-	private readonly config: Config
+	readonly #config: Config
 
 	constructor(config: Config) {
-		this.config = config
+		this.#config = config
 	}
 
 	public async request<T extends GenericResponse>(
@@ -515,21 +524,21 @@ export class GameMoney {
 	): Promise<T> {
 		const form = compactForm({
 			...payload,
-			project: payload.project ?? this.config.project,
+			project: payload.project ?? this.#config.project,
 			rand: payload.rand ?? getRandomString(20),
 		}) as GenericRequest
-		const apiUrl = this.config.apiUrl ?? 'https://paygate.gamemoney.com'
+		const apiUrl = this.#config.apiUrl ?? 'https://paygate.gamemoney.com'
 
 		if (signType === SignType.RSA) {
-			if (this.config.rsaPrivateKey === undefined) {
+			if (this.#config.rsaPrivateKey === undefined) {
 				throw new Error(
 					"To make requests with RSA sign type, 'rsaPrivateKey' must be provided",
 				)
 			}
 
-			form.signature = generateRsaSignature(form, this.config.rsaPrivateKey)
+			form.signature = generateRsaSignature(form, this.#config.rsaPrivateKey)
 		} else {
-			form.signature = generateHmacSignature(form, this.config.hmacPrivateKey)
+			form.signature = generateHmacSignature(form, this.#config.hmacPrivateKey)
 		}
 
 		const httpResponse = await fetch(
@@ -546,9 +555,9 @@ export class GameMoney {
 				body: stringifyForm(form),
 				redirect: 'manual',
 				signal:
-					this.config.timeout === undefined
+					this.#config.timeout === undefined
 						? null
-						: AbortSignal.timeout(this.config.timeout),
+						: AbortSignal.timeout(this.#config.timeout),
 			},
 		)
 
@@ -558,7 +567,7 @@ export class GameMoney {
 
 		const response = (await httpResponse.json()) as T
 
-		if (!verifyRsaSignature(response, this.config.gameMoneyPublicKey)) {
+		if (!verifyRsaSignature(response, this.#config.gameMoneyPublicKey)) {
 			throw new Error('Response signature mismatch')
 		}
 
@@ -573,19 +582,21 @@ export class GameMoney {
 		return response
 	}
 
-	public generateHmacSignature(body: Record<string, unknown>) {
+	public generateHmacSignature(body: Record<string, unknown>): string {
 		return generateHmacSignature(
 			body as Parameters<typeof generateHmacSignature>[0],
-			this.config.hmacPrivateKey,
+			this.#config.hmacPrivateKey,
 		)
 	}
 
-	public verifyRsaSignature(body: unknown) {
-		return verifyRsaSignature(body, this.config.gameMoneyPublicKey)
+	public verifyRsaSignature(body: unknown): boolean {
+		return verifyRsaSignature(body, this.#config.gameMoneyPublicKey)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_insert_api) */
-	public async createInvoice(body: CreateInvoiceRequest) {
+	public async createInvoice(
+		body: CreateInvoiceRequest,
+	): Promise<CreateInvoiceResponse & GenericResponse> {
 		return this.request<CreateInvoiceResponse & GenericResponse>(
 			'invoice/',
 			body,
@@ -593,7 +604,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_status) */
-	public async getInvoiceStatus(body: GetInvoiceStatusRequest) {
+	public async getInvoiceStatus(
+		body: GetInvoiceStatusRequest,
+	): Promise<GetInvoiceStatusResponse & GenericResponse> {
 		return this.request<GetInvoiceStatusResponse & GenericResponse>(
 			'invoice/status',
 			body,
@@ -601,7 +614,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_list) */
-	public async getInvoiceList(body: GetInvoiceListRequest) {
+	public async getInvoiceList(
+		body: GetInvoiceListRequest,
+	): Promise<GetInvoiceListResponse & GenericResponse> {
 		return this.request<GetInvoiceListResponse & GenericResponse>(
 			'invoice/list',
 			body,
@@ -609,7 +624,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_add_token) */
-	public async addTokenInvoice(body: AddTokenInvoiceRequest) {
+	public async addTokenInvoice(
+		body: AddTokenInvoiceRequest,
+	): Promise<AddTokenInvoiceResponse & GenericResponse> {
 		return this.request<AddTokenInvoiceResponse & GenericResponse>(
 			'invoice/addtoken',
 			body,
@@ -617,12 +634,16 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_insert) */
-	public async createCheckout(body: CreateCheckoutRequest) {
+	public async createCheckout(
+		body: CreateCheckoutRequest,
+	): Promise<GenericResponse> {
 		return this.request<GenericResponse>('checkout/insert', body, SignType.RSA)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_prepare) */
-	public async prepareCheckout(body: PrepareCheckoutRequest) {
+	public async prepareCheckout(
+		body: PrepareCheckoutRequest,
+	): Promise<PrepareCheckoutResponse & GenericResponse> {
 		return this.request<PrepareCheckoutResponse & GenericResponse>(
 			'checkout/prepare',
 			body,
@@ -630,17 +651,23 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_check) */
-	public async checkCheckout(body: CreateCheckoutRequest) {
+	public async checkCheckout(
+		body: CreateCheckoutRequest,
+	): Promise<GenericResponse> {
 		return this.request<GenericResponse>('checkout/check', body, SignType.RSA)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_cancel) */
-	public async cancelCheckout(body: CancelCheckoutRequest) {
+	public async cancelCheckout(
+		body: CancelCheckoutRequest,
+	): Promise<GenericResponse> {
 		return this.request<GenericResponse>('checkout/cancel', body)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_status) */
-	public async getCheckoutStatus(body: GetCheckoutStatusRequest) {
+	public async getCheckoutStatus(
+		body: GetCheckoutStatusRequest,
+	): Promise<GetCheckoutStatusResponse & GenericResponse> {
 		return this.request<GetCheckoutStatusResponse & GenericResponse>(
 			'checkout/status',
 			body,
@@ -648,7 +675,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#checkout_list) */
-	public async getCheckoutList(body: GetCheckoutListRequest) {
+	public async getCheckoutList(
+		body: GetCheckoutListRequest,
+	): Promise<GetCheckoutListResponse & GenericResponse> {
 		return this.request<GetCheckoutListResponse & GenericResponse>(
 			'checkout/list',
 			body,
@@ -656,12 +685,16 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_add) */
-	public async addCard(body: AddCardRequest) {
+	public async addCard(
+		body: AddCardRequest,
+	): Promise<AddCardResponse & GenericResponse> {
 		return this.request<AddCardResponse & GenericResponse>('card/add', body)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_add_token) */
-	public async addTokenCard(body: AddTokenCardRequest) {
+	public async addTokenCard(
+		body: AddTokenCardRequest,
+	): Promise<AddTokenCardResponse & GenericResponse> {
 		return this.request<AddTokenCardResponse & GenericResponse>(
 			'card/addtoken',
 			body,
@@ -669,7 +702,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_list) */
-	public async getCardList(body: GetCardListRequest) {
+	public async getCardList(
+		body: GetCardListRequest,
+	): Promise<GetCardListResponse & GenericResponse> {
 		return this.request<GetCardListResponse & GenericResponse>(
 			'card/list',
 			body,
@@ -677,7 +712,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_fulllist) */
-	public async getCardFullList(body: GetCardFullListRequest) {
+	public async getCardFullList(
+		body: GetCardFullListRequest,
+	): Promise<GetCardFullListResponse & GenericResponse> {
 		return this.request<GetCardFullListResponse & GenericResponse>(
 			'card/fulllist',
 			body,
@@ -685,12 +722,14 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#card_delete) */
-	public async deleteCard(body: DeleteCardRequest) {
+	public async deleteCard(body: DeleteCardRequest): Promise<GenericResponse> {
 		return this.request<GenericResponse>('card/delete', body)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_prepare) */
-	public async prepareExchange(body: PrepareExchangeRequest) {
+	public async prepareExchange(
+		body: PrepareExchangeRequest,
+	): Promise<PrepareExchangeResponse & GenericResponse> {
 		return this.request<PrepareExchangeResponse & GenericResponse>(
 			'exchange/prepare',
 			body,
@@ -698,12 +737,16 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_convert) */
-	public async convertExchange(body: ConvertExchangeRequest) {
+	public async convertExchange(
+		body: ConvertExchangeRequest,
+	): Promise<GenericResponse> {
 		return this.request<GenericResponse>('exchange/convert', body)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_fastconvert) */
-	public async fastConvertExchange(body: FastConvertExchangeRequest) {
+	public async fastConvertExchange(
+		body: FastConvertExchangeRequest,
+	): Promise<FastConvertExchangeResponse & GenericResponse> {
 		return this.request<FastConvertExchangeResponse & GenericResponse>(
 			'exchange/fastconvert',
 			body,
@@ -711,7 +754,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_rate) */
-	public async getExchangeRate(body: GetExchangeRateRequest) {
+	public async getExchangeRate(
+		body: GetExchangeRateRequest,
+	): Promise<GetExchangeRateResponse & GenericResponse> {
 		return this.request<GetExchangeRateResponse & GenericResponse>(
 			'exchange/rate',
 			body,
@@ -719,7 +764,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#exchange_status) */
-	public async getExchangeStatus(body: GetExchangeStatusRequest) {
+	public async getExchangeStatus(
+		body: GetExchangeStatusRequest,
+	): Promise<GetExchangeStatusResponse & GenericResponse> {
 		return this.request<GetExchangeStatusResponse & GenericResponse>(
 			'exchange/status',
 			body,
@@ -727,7 +774,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#stat_balance) */
-	public async getBalanceStatistics(body: GetBalanceStatisticsRequest) {
+	public async getBalanceStatistics(
+		body: GetBalanceStatisticsRequest,
+	): Promise<GetBalanceStatisticsResponse & GenericResponse> {
 		return this.request<GetBalanceStatisticsResponse & GenericResponse>(
 			'statistics/balance',
 			body,
@@ -735,7 +784,9 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#stat_days_balance) */
-	public async getDaysBalanceStatistics(body: GetDaysBalanceStatisticsRequest) {
+	public async getDaysBalanceStatistics(
+		body: GetDaysBalanceStatisticsRequest,
+	): Promise<GetDaysBalanceStatisticsResponse & GenericResponse> {
 		return this.request<GetDaysBalanceStatisticsResponse & GenericResponse>(
 			'statistics/days_balance_project',
 			body,
@@ -743,14 +794,18 @@ export class GameMoney {
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#stat_paytypes) */
-	public async getPayTypesStatistics() {
+	public async getPayTypesStatistics(): Promise<
+		GetPayTypesStatisticsResponse & GenericResponse
+	> {
 		return this.request<GetPayTypesStatisticsResponse & GenericResponse>(
 			'statistics/paytypes',
 		)
 	}
 
 	/** For more details and usage information see [docs](https://cp.gmpays.com/apidoc#invoice_api_terminal) */
-	public async createTerminal(body: CreateTerminalRequest) {
+	public async createTerminal(
+		body: CreateTerminalRequest,
+	): Promise<CreateTerminalResponse & GenericResponse> {
 		return this.request<CreateTerminalResponse & GenericResponse>(
 			'terminal/create',
 			body,

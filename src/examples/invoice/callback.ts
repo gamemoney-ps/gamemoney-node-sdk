@@ -12,13 +12,10 @@ app.post('/webhooks/handle_invoices', (request, response) => {
 	console.log(notification)
 
 	if (!gm.verifyRsaSignature(notification)) {
-		return response.send({
-			success: 'error',
-			error: 'signature mismatch',
-		})
+		response.send({ success: 'error', error: 'signature mismatch' })
+		return
 	}
 
-	console.log(notification)
 	response.send({ success: 'true' })
 })
 
