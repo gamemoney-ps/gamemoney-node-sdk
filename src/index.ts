@@ -85,14 +85,6 @@ export type GetInvoiceStatusByProjectInvoiceRequest = {
 	project_invoice: string
 }
 
-/** @deprecated Use `GetInvoiceStatusByInvoiceRequest` */
-export type GetInvoiceStatusRequestWithProjectInvoiceId =
-	GetInvoiceStatusByInvoiceRequest
-
-/** @deprecated Use `GetInvoiceStatusByProjectInvoiceRequest` */
-export type GetInvoiceStatusRequestWithGamemoneyInvoiceId =
-	GetInvoiceStatusByProjectInvoiceRequest
-
 export type GetInvoiceStatusRequest =
 	| GetInvoiceStatusByInvoiceRequest
 	| GetInvoiceStatusByProjectInvoiceRequest
@@ -149,15 +141,6 @@ export type CancelCheckoutRequest = {
 export type GetCheckoutStatusRequest = {
 	[key: string]: unknown
 	projectId: string
-}
-
-/** @deprecated Not returned by any API method */
-export type Refund = {
-	id: number
-	amount: number
-	net_amount: number
-	paid_amount: number
-	comment: string
 }
 
 export type GetCheckoutStatusResponse = {
@@ -373,7 +356,7 @@ export type GetDaysBalanceStatisticsResponse = {
 	days_balance: DaysBalance[]
 }
 
-export type PaySystem = {
+export type InvoicePaySystem = {
 	type: string
 	fee: number
 	fixed_fee: number
@@ -381,14 +364,18 @@ export type PaySystem = {
 	image_url: string
 	min_sum?: number
 	max_sum?: number
-	terminal?: 'enabled' | 'disabled'
-}
-
-export type InvoicePaySystem = Omit<PaySystem, 'terminal'> & {
 	terminal: 'enabled' | 'disabled'
 }
 
-export type CheckoutPaySystem = Omit<PaySystem, 'terminal'>
+export type CheckoutPaySystem = {
+	type: string
+	fee: number
+	fixed_fee: number
+	currency: string
+	image_url: string
+	min_sum?: number
+	max_sum?: number
+}
 
 export type GetPayTypesStatisticsResponse = {
 	project: number
