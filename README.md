@@ -58,7 +58,7 @@ const { GameMoney, verifyRsaSignature } = require('gamemoney')
 ### Errors
 
 - `GameMoneyError`: GameMoney responded with `"state": "error"`, the error text is in `message`.
-- `GameMoneyHttpError`: GameMoney responded with a non-2xx HTTP status, available in `status`.
+- `GameMoneyHttpError`: GameMoney responded with a non-2xx HTTP status, available in `status`. Redirects are not followed, so a 3xx response throws it too.
 - `TimeoutError`: the request did not complete within `timeout`. GameMoney may still process it, so check the operation status (for example, with `getCheckoutStatus`) before retrying.
 - `Error` with `Response signature mismatch` or `Wrong rand parameter`: the response failed verification and must not be trusted.
 

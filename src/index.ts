@@ -561,6 +561,7 @@ export class GameMoney {
 					'content-type': 'application/x-www-form-urlencoded',
 				},
 				body: stringifyForm(form),
+				redirect: 'manual',
 				signal:
 					this.config.timeout === undefined
 						? null

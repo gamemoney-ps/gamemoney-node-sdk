@@ -13,6 +13,7 @@ import { GameMoney, type CreateCheckoutRequest } from './index.ts'
 type Reply = (form: URLSearchParams) => {
 	status?: number
 	delay?: number
+	headers?: Record<string, string>
 	body: Record<string, unknown>
 }
 
@@ -65,10 +66,14 @@ const server = http.createServer((request, response) => {
 		const {
 			status = 200,
 			delay = 0,
+			headers = {},
 			body: payload,
 		} = reply(new URLSearchParams(body))
 		setTimeout(() => {
-			response.writeHead(status, { 'content-type': 'application/json' })
+			response.writeHead(status, {
+				'content-type': 'application/json',
+				...headers,
+			})
 			response.end(JSON.stringify(payload))
 		}, delay)
 	})
@@ -287,6 +292,29 @@ describe('response handling', () => {
 			status: 500,
 			message: 'Response code 500 (Internal Server Error)',
 		})
+	})
+
+	it('should not follow redirects', async () => {
+		const location = `${apiUrl.replace('127.0.0.1', 'localhost')}/redirected`
+
+		for (const status of [301, 302, 303, 307, 308]) {
+			reply = () => ({ status, headers: { location }, body: {} })
+			const sent = requests.length
+
+			await assert.rejects(
+				gm.createCheckout({
+					projectId: 'co-2',
+					user: '1',
+					ip: '72.14.192.0',
+					amount: 10,
+					wallet: '79123456789',
+					type: 'sbp',
+					description: 'Payout',
+				}),
+				{ name: 'GameMoneyHttpError', status },
+			)
+			assert.equal(requests.length, sent + 1)
+		}
 	})
 
 	it('should abort request after configured timeout', async () => {
