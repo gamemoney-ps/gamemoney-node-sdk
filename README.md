@@ -64,11 +64,19 @@ const { GameMoney, verifyRsaSignature } = require('gamemoney')
 - `SyntaxError`: the response is not JSON.
 - `Error` with `Response signature mismatch` or `Wrong rand parameter`: the response failed verification and must not be trusted.
 
-Only `GameMoneyError` means that GameMoney rejected the request. After any other error the request may still have been processed, so check the operation status (for example, with `getCheckoutStatus`) before retrying.
+Only `GameMoneyError` means that GameMoney rejected the request. After any other error the request may still have been processed, so check the operation status (for example, with `getCheckoutStatus`) before retrying. A repeated `createCheckout` with the same `projectId` and the same parameters does not create a second payout.
+
+`createInvoice` resolves with `type: 'error'` when the payment system declines the payment, the reason is in `data`.
+
+### Dates
+
+Dates are in Moscow time (UTC+3) without an offset: `date_create` and `date_pay` in responses and notifications, and `start` and `finish` in list requests.
 
 ### Notifications
 
-GameMoney sends notifications as a form (`application/x-www-form-urlencoded`), so parse them with `express.urlencoded()` or a similar parser. All values are strings. Payment and payout notifications are resent for 24 hours until the project responds with `{"success": "true"}`:
+GameMoney sends notifications as a form (`application/x-www-form-urlencoded`), so parse them with `express.urlencoded()` or a similar parser. All values are strings. Payment and payout notifications are resent for 24 hours until the project responds with HTTP 200 and `{"success": "true"}`.
+
+A payout created through the API is processed only after the project acknowledges its notification, so answer every payout notification, including the first one with status `0`. Set the final webhook URL in the project settings: a redirect (for example, from http to https) can break the delivery.
 
 ```typescript
 if (!gm.verifyRsaSignature(notification)) {

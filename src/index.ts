@@ -57,7 +57,7 @@ export type CreateInvoiceRequest = {
 	comment?: string
 	success_url?: string
 	fail_url?: string
-	wallet: string
+	wallet?: string
 	project_invoice?: string
 	currency?: string
 	user_currency?: string
@@ -72,7 +72,7 @@ export type CreateInvoiceRequest = {
 
 export type CreateInvoiceResponse = {
 	invoice: number
-	type: 'message' | 'redirect' | 'cardrequest' | 'error'
+	type: 'message' | 'redirect' | 'error'
 	data: string
 }
 
@@ -101,7 +101,7 @@ export type GetInvoiceStatusResponse = {
 	type: string
 	wallet: string
 	comment: string
-	project_invoice: string
+	project_invoice?: string
 	currency_project: string
 	currency_user: string
 	date_create: string
@@ -330,7 +330,7 @@ export type GetExchangeStatusResponse = {
 
 export type GetBalanceStatisticsRequest = {
 	[key: string]: unknown
-	currency: string
+	currency?: string
 }
 
 export type GetBalanceStatisticsResponse = {
@@ -346,7 +346,7 @@ export type GetBalanceStatisticsResponse = {
 
 export type GetDaysBalanceStatisticsRequest = {
 	[key: string]: unknown
-	currency: string
+	currency?: string
 	start: string
 	finish: string
 }
@@ -410,7 +410,6 @@ export type InvoiceStatus =
 	| 'Paid'
 	| 'Chargeback'
 	| 'Refund'
-	| 'Chargeback_cancel'
 	| 'Refused'
 
 export type InvoiceNotification = {
